@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.env
+.venv/
+env/
+venv/
+
+# App temporary files & tokens
+temp/
+token.json
+client_secrets.json
+.DS_Store
+Thumbs.db
+
+# Large video outputs
+output/*.mp4

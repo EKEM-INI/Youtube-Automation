@@ -1,9 +1,8 @@
-// AutoShorts AI — Frontend Logic
+// AutoShorts AI — Frontend Logic with Google Veo
 
 let currentJobId = null;
 let pollInterval = null;
 
-// Tab Switching
 function switchTab(tabId) {
   document.getElementById('tab-wizard').classList.add('hidden');
   document.getElementById('tab-gallery').classList.add('hidden');
@@ -21,12 +20,29 @@ function switchTab(tabId) {
   }
 }
 
-// Preset Topic Setter
 function setTopic(text) {
   document.getElementById('input-topic').value = text;
 }
 
-// Tone Selector
+function selectEngine(engine) {
+  document.getElementById('input-engine').value = engine;
+  const veoCard = document.getElementById('engine-card-veo');
+  const procCard = document.getElementById('engine-card-procedural');
+  const btn = document.getElementById('btn-generate');
+
+  if (engine === 'veo') {
+    veoCard.className = "cursor-pointer p-4 rounded-xl border border-blue-500 bg-blue-950/30 transition hover:scale-[1.01]";
+    procCard.className = "cursor-pointer p-4 rounded-xl border border-gray-800 bg-black/40 transition hover:scale-[1.01]";
+    btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> <span>GENERATE WITH GOOGLE VEO</span>`;
+    btn.className = "w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white font-extrabold text-sm tracking-wide glow-btn transition flex items-center justify-center gap-2";
+  } else {
+    procCard.className = "cursor-pointer p-4 rounded-xl border border-yellow-500 bg-yellow-950/30 transition hover:scale-[1.01]";
+    veoCard.className = "cursor-pointer p-4 rounded-xl border border-gray-800 bg-black/40 transition hover:scale-[1.01]";
+    btn.innerHTML = `<i class="fa-solid fa-bolt"></i> <span>GENERATE FAST SHORT</span>`;
+    btn.className = "w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-yellow-600 via-orange-600 to-red-500 text-white font-extrabold text-sm tracking-wide glow-btn transition flex items-center justify-center gap-2";
+  }
+}
+
 function selectTone(tone) {
   document.getElementById('input-tone').value = tone;
   document.querySelectorAll('.tone-card').forEach(card => {
@@ -37,7 +53,6 @@ function selectTone(tone) {
   event.currentTarget.classList.add('border-purple-500', 'bg-purple-950/30');
 }
 
-// Voice Selector
 function selectVoice(voice) {
   document.getElementById('input-voice').value = voice;
   document.querySelectorAll('.voice-card').forEach(card => {
@@ -48,13 +63,14 @@ function selectVoice(voice) {
   event.currentTarget.classList.add('border-purple-500', 'bg-purple-950/30');
 }
 
-// Start Video Generation
 async function startVideoGeneration() {
   const topic = document.getElementById('input-topic').value.trim();
   const tone = document.getElementById('input-tone').value;
   const voice = document.getElementById('input-voice').value;
+  const engine = document.getElementById('input-engine').value;
   const publishMode = document.querySelector('input[name="publish_mode"]:checked').value;
   const pexelsKey = localStorage.getItem('pexels_api_key') || "";
+  const veoKey = localStorage.getItem('veo_api_key') || "";
 
   if (!topic) {
     alert("Please enter or pick a video topic.");
@@ -63,7 +79,7 @@ async function startVideoGeneration() {
 
   // Open Modal
   document.getElementById('generation-modal').classList.remove('hidden');
-  document.getElementById('modal-title').innerText = "Generating Your Viral Short...";
+  document.getElementById('modal-title').innerText = engine === 'veo' ? "Generating with Google Veo AI..." : "Generating Viral Short...";
   document.getElementById('modal-status-text').innerText = "🧠 Crafting viral hook & script...";
   document.getElementById('modal-progress-bar').style.width = "15%";
   document.getElementById('modal-progress-percent').innerText = "15%";
@@ -78,7 +94,9 @@ async function startVideoGeneration() {
         tone: tone,
         voice: voice,
         publish_mode: publishMode,
-        pexels_key: pexelsKey
+        pexels_key: pexelsKey,
+        veo_key: veoKey,
+        use_veo: engine === 'veo'
       })
     });
 
@@ -96,7 +114,6 @@ async function startVideoGeneration() {
   }
 }
 
-// Poll Job Status
 function startPolling(jobId) {
   if (pollInterval) clearInterval(pollInterval);
 
@@ -122,10 +139,10 @@ function startPolling(jobId) {
         videoEl.load();
 
         document.getElementById('modal-download-btn').href = videoUrl;
-        fetchVideoList(); // update gallery counter
+        fetchVideoList();
       } else if (job.status === 'failed') {
         clearInterval(pollInterval);
-        alert("Generation failed: " + job.error);
+        alert("Generation status: " + job.error);
         closeModal();
       }
 
@@ -139,7 +156,6 @@ function closeModal() {
   document.getElementById('generation-modal').classList.add('hidden');
 }
 
-// Fetch Video Gallery
 async function fetchVideoList() {
   try {
     const res = await fetch('/api/videos');
@@ -172,7 +188,7 @@ async function fetchVideoList() {
           <div class="text-[10px] text-gray-400">${v.size_mb} MB • 1080x1920 HD</div>
         </div>
         <div class="flex gap-2 pt-2">
-          <a href="${v.url}" download class="flex-1 py-2 rounded-lg bg-purple-600/30 hover:bg-purple-600 text-purple-200 hover:text-white text-xs font-bold text-center transition">
+          <a href="${v.url}" download class="flex-1 py-2 rounded-lg bg-blue-600/30 hover:bg-blue-600 text-blue-200 hover:text-white text-xs font-bold text-center transition">
             <i class="fa-solid fa-download"></i> Save
           </a>
         </div>
@@ -185,18 +201,18 @@ async function fetchVideoList() {
   }
 }
 
-// Save Settings
 function saveSettings() {
   const pexelsKey = document.getElementById('setting-pexels').value.trim();
+  const veoKey = document.getElementById('setting-veo').value.trim();
   localStorage.setItem('pexels_api_key', pexelsKey);
+  localStorage.setItem('veo_api_key', veoKey);
   alert("Settings saved successfully!");
 }
 
-// Init on load
 document.addEventListener('DOMContentLoaded', () => {
-  const savedKey = localStorage.getItem('pexels_api_key');
-  if (savedKey) {
-    document.getElementById('setting-pexels').value = savedKey;
-  }
+  const savedPexels = localStorage.getItem('pexels_api_key');
+  const savedVeo = localStorage.getItem('veo_api_key');
+  if (savedPexels) document.getElementById('setting-pexels').value = savedPexels;
+  if (savedVeo) document.getElementById('setting-veo').value = savedVeo;
   fetchVideoList();
 });

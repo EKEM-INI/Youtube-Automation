@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AutoShorts AI — 1-Click YouTube Automation</title>
+  <title>AutoShorts AI — 1-Click YouTube Automation with Google Veo</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -13,12 +13,10 @@
         extend: {
           colors: {
             brand: {
-              50: '#fdf4ff',
               500: '#a855f7',
               600: '#9333ea',
               700: '#7e22ce',
-              red: '#ff0033',
-              gold: '#eab308'
+              google: '#4285F4'
             }
           }
         }
@@ -37,11 +35,6 @@
       background: rgba(18, 18, 24, 0.75);
       backdrop-filter: blur(16px);
       border: 1px solid rgba(255, 255, 255, 0.08);
-    }
-    .glass-card {
-      background: rgba(30, 30, 42, 0.6);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.06);
     }
     .glow-btn {
       box-shadow: 0 0 25px -5px rgba(168, 85, 247, 0.5);
@@ -65,8 +58,8 @@
           <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-gray-200 to-purple-400 bg-clip-text text-transparent">
             AutoShorts<span class="text-purple-500">.AI</span>
           </span>
-          <span class="hidden sm:inline-block ml-2 px-2 py-0.5 text-xs font-semibold bg-purple-950/80 text-purple-300 border border-purple-800/50 rounded-full">
-            100% Free Engine
+          <span class="hidden sm:inline-block ml-2 px-2 py-0.5 text-xs font-semibold bg-blue-950/80 text-blue-300 border border-blue-800/50 rounded-full">
+            <i class="fa-brands fa-google mr-1"></i> Google Veo Enabled
           </span>
         </div>
       </div>
@@ -93,16 +86,16 @@
     <div id="tab-wizard" class="space-y-8">
       
       <!-- Hero Banner -->
-      <div class="relative overflow-hidden rounded-3xl p-8 bg-gradient-to-br from-purple-900/30 via-black to-pink-950/20 border border-purple-500/20 shadow-2xl">
+      <div class="relative overflow-hidden rounded-3xl p-8 bg-gradient-to-br from-purple-900/30 via-black to-blue-950/30 border border-purple-500/20 shadow-2xl">
         <div class="relative z-10 max-w-3xl">
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-purple-500/10 text-purple-400 border border-purple-500/20 mb-3">
-            <i class="fa-solid fa-bolt"></i> 3-Question Instant Creator
+            <i class="fa-solid fa-bolt"></i> Powered by Google Veo & Edge-TTS
           </div>
           <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
-            Create Viral YouTube Shorts in <span class="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">30 Seconds</span>
+            Generate High-Retention YouTube Shorts with <span class="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Google Veo AI</span>
           </h1>
           <p class="mt-2 text-gray-400 text-sm sm:text-base">
-            Answer 3 quick questions below. Our AI writes the hook, records human-like voiceover, syncs dynamic animated subtitles, and generates a ready-to-post 1080x1920 Short.
+            Answer 3 quick questions. The system writes the viral script, synthesizes neural voiceovers, creates cinematic Google Veo visuals, and builds a ready-to-post 1080x1920 Short.
           </p>
         </div>
       </div>
@@ -110,7 +103,7 @@
       <!-- THE 3-QUESTION FORM -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-        <!-- Left Form Column (Questions 1, 2, 3) -->
+        <!-- Left Form Column -->
         <div class="lg:col-span-2 space-y-6">
 
           <!-- QUESTION 1: TOPIC & NICHE -->
@@ -120,7 +113,6 @@
                 <span class="w-6 h-6 rounded-full bg-purple-600 text-white text-xs flex items-center justify-center font-bold">1</span>
                 What is your video topic or niche?
               </label>
-              <span class="text-xs text-gray-500">Pick a preset or write your own</span>
             </div>
 
             <!-- Preset Topic Chips -->
@@ -134,11 +126,8 @@
               <button type="button" onclick="setTopic('The Scariest Sound Recorded in Deep Space')" class="topic-chip px-3 py-1.5 rounded-full text-xs font-medium bg-gray-800/80 hover:bg-purple-900/40 text-gray-300 hover:text-purple-200 border border-gray-700/60 hover:border-purple-500/40 transition">
                 🌌 Deep Space Mysteries
               </button>
-              <button type="button" onclick="setTopic('The Money Rule The Rich Never Teach You')" class="topic-chip px-3 py-1.5 rounded-full text-xs font-medium bg-gray-800/80 hover:bg-purple-900/40 text-gray-300 hover:text-purple-200 border border-gray-700/60 hover:border-purple-500/40 transition">
-                💰 Wealth & Financial Freedom
-              </button>
-              <button type="button" onclick="setTopic('The Unsolved Mystery of the Siberian Crater')" class="topic-chip px-3 py-1.5 rounded-full text-xs font-medium bg-gray-800/80 hover:bg-purple-900/40 text-gray-300 hover:text-purple-200 border border-gray-700/60 hover:border-purple-500/40 transition">
-                🕳️ Unsolved Mysteries
+              <button type="button" onclick="setTopic('The Shocking Truth About Artificial General Intelligence')" class="topic-chip px-3 py-1.5 rounded-full text-xs font-medium bg-gray-800/80 hover:bg-purple-900/40 text-gray-300 hover:text-purple-200 border border-gray-700/60 hover:border-purple-500/40 transition">
+                🤖 Future AI Secrets
               </button>
             </div>
 
@@ -148,39 +137,49 @@
             </div>
           </div>
 
-          <!-- QUESTION 2: TONE & STYLE -->
+          <!-- QUESTION 2: VISUAL GENERATOR & TONE -->
           <div class="glass-panel p-6 rounded-2xl space-y-4">
             <div class="flex items-center justify-between">
               <label class="text-base font-bold text-white flex items-center gap-2">
                 <span class="w-6 h-6 rounded-full bg-purple-600 text-white text-xs flex items-center justify-center font-bold">2</span>
-                What tone & energy level do you want?
+                Choose Video Engine & Visual Style
               </label>
             </div>
 
+            <!-- Engine Options -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+              <div onclick="selectEngine('veo')" id="engine-card-veo" class="cursor-pointer p-4 rounded-xl border border-blue-500 bg-blue-950/30 transition hover:scale-[1.01]">
+                <div class="flex items-center gap-2 font-bold text-xs text-white">
+                  <i class="fa-brands fa-google text-blue-400"></i> Google Veo AI Mode
+                </div>
+                <div class="text-[11px] text-gray-300 mt-1">Generates custom cinematic 9:16 AI video scenes matching your script.</div>
+              </div>
+              <div onclick="selectEngine('procedural')" id="engine-card-procedural" class="cursor-pointer p-4 rounded-xl border border-gray-800 bg-black/40 transition hover:scale-[1.01]">
+                <div class="flex items-center gap-2 font-bold text-xs text-white">
+                  <i class="fa-solid fa-bolt text-yellow-400"></i> Fast Free Engine
+                </div>
+                <div class="text-[11px] text-gray-300 mt-1">Instant rendering with dynamic motion backdrops. 0 cost, 0 API keys.</div>
+              </div>
+            </div>
+            <input type="hidden" id="input-engine" value="veo" />
+
+            <!-- Tone Selector -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="tone-selector">
-              <!-- Energetic -->
-              <div onclick="selectTone('energetic')" class="tone-card active cursor-pointer p-3.5 rounded-xl border border-purple-500 bg-purple-950/30 text-center transition hover:scale-[1.02]">
+              <div onclick="selectTone('energetic')" class="tone-card active cursor-pointer p-3.5 rounded-xl border border-purple-500 bg-purple-950/30 text-center transition">
                 <div class="text-xl mb-1">⚡</div>
                 <div class="font-bold text-xs text-white">Viral Energy</div>
-                <div class="text-[10px] text-gray-400 mt-0.5">Fast pace, punchy</div>
               </div>
-              <!-- Dark / Mystery -->
-              <div onclick="selectTone('dark')" class="tone-card cursor-pointer p-3.5 rounded-xl border border-gray-800 bg-black/40 text-center transition hover:scale-[1.02] hover:border-gray-600">
+              <div onclick="selectTone('dark')" class="tone-card cursor-pointer p-3.5 rounded-xl border border-gray-800 bg-black/40 text-center transition">
                 <div class="text-xl mb-1">🤫</div>
-                <div class="font-bold text-xs text-white">Dark & Mystery</div>
-                <div class="text-[10px] text-gray-400 mt-0.5">Deep, thrilling</div>
+                <div class="font-bold text-xs text-white">Dark Mystery</div>
               </div>
-              <!-- Cinematic -->
-              <div onclick="selectTone('cinematic')" class="tone-card cursor-pointer p-3.5 rounded-xl border border-gray-800 bg-black/40 text-center transition hover:scale-[1.02] hover:border-gray-600">
+              <div onclick="selectTone('cinematic')" class="tone-card cursor-pointer p-3.5 rounded-xl border border-gray-800 bg-black/40 text-center transition">
                 <div class="text-xl mb-1">🎬</div>
                 <div class="font-bold text-xs text-white">Cinematic</div>
-                <div class="text-[10px] text-gray-400 mt-0.5">Storytelling flow</div>
               </div>
-              <!-- Chill -->
-              <div onclick="selectTone('chill')" class="tone-card cursor-pointer p-3.5 rounded-xl border border-gray-800 bg-black/40 text-center transition hover:scale-[1.02] hover:border-gray-600">
+              <div onclick="selectTone('chill')" class="tone-card cursor-pointer p-3.5 rounded-xl border border-gray-800 bg-black/40 text-center transition">
                 <div class="text-xl mb-1">💡</div>
                 <div class="font-bold text-xs text-white">Inspiring</div>
-                <div class="text-[10px] text-gray-400 mt-0.5">Warm & smooth</div>
               </div>
             </div>
             <input type="hidden" id="input-tone" value="energetic" />
@@ -197,7 +196,6 @@
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3" id="voice-selector">
-              <!-- Christopher -->
               <div onclick="selectVoice('christopher')" class="voice-card active cursor-pointer p-3.5 rounded-xl border border-purple-500 bg-purple-950/30 transition flex items-center gap-3">
                 <div class="w-9 h-9 rounded-full bg-purple-600/30 flex items-center justify-center text-purple-300 font-bold text-sm">
                   <i class="fa-solid fa-microphone"></i>
@@ -207,8 +205,7 @@
                   <div class="text-[10px] text-gray-400">Deep & Authoritative (US)</div>
                 </div>
               </div>
-              <!-- Guy -->
-              <div onclick="selectVoice('guy')" class="voice-card cursor-pointer p-3.5 rounded-xl border border-gray-800 bg-black/40 transition flex items-center gap-3 hover:border-gray-600">
+              <div onclick="selectVoice('guy')" class="voice-card cursor-pointer p-3.5 rounded-xl border border-gray-800 bg-black/40 transition flex items-center gap-3">
                 <div class="w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center text-gray-300 font-bold text-sm">
                   <i class="fa-solid fa-microphone"></i>
                 </div>
@@ -217,44 +214,13 @@
                   <div class="text-[10px] text-gray-400">Viral & Energetic (US)</div>
                 </div>
               </div>
-              <!-- Jenny -->
-              <div onclick="selectVoice('jenny')" class="voice-card cursor-pointer p-3.5 rounded-xl border border-gray-800 bg-black/40 transition flex items-center gap-3 hover:border-gray-600">
+              <div onclick="selectVoice('jenny')" class="voice-card cursor-pointer p-3.5 rounded-xl border border-gray-800 bg-black/40 transition flex items-center gap-3">
                 <div class="w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center text-gray-300 font-bold text-sm">
                   <i class="fa-solid fa-microphone"></i>
                 </div>
                 <div>
                   <div class="font-bold text-xs text-white">Jenny</div>
                   <div class="text-[10px] text-gray-400">Engaging & Friendly (US)</div>
-                </div>
-              </div>
-              <!-- Ryan -->
-              <div onclick="selectVoice('ryan')" class="voice-card cursor-pointer p-3.5 rounded-xl border border-gray-800 bg-black/40 transition flex items-center gap-3 hover:border-gray-600">
-                <div class="w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center text-gray-300 font-bold text-sm">
-                  <i class="fa-solid fa-microphone"></i>
-                </div>
-                <div>
-                  <div class="font-bold text-xs text-white">Ryan</div>
-                  <div class="text-[10px] text-gray-400">British Male Accent (UK)</div>
-                </div>
-              </div>
-              <!-- Sonia -->
-              <div onclick="selectVoice('sonia')" class="voice-card cursor-pointer p-3.5 rounded-xl border border-gray-800 bg-black/40 transition flex items-center gap-3 hover:border-gray-600">
-                <div class="w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center text-gray-300 font-bold text-sm">
-                  <i class="fa-solid fa-microphone"></i>
-                </div>
-                <div>
-                  <div class="font-bold text-xs text-white">Sonia</div>
-                  <div class="text-[10px] text-gray-400">British Female Accent (UK)</div>
-                </div>
-              </div>
-              <!-- Aria -->
-              <div onclick="selectVoice('aria')" class="voice-card cursor-pointer p-3.5 rounded-xl border border-gray-800 bg-black/40 transition flex items-center gap-3 hover:border-gray-600">
-                <div class="w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center text-gray-300 font-bold text-sm">
-                  <i class="fa-solid fa-microphone"></i>
-                </div>
-                <div>
-                  <div class="font-bold text-xs text-white">Aria</div>
-                  <div class="text-[10px] text-gray-400">Expressive Female (US)</div>
                 </div>
               </div>
             </div>
@@ -274,80 +240,56 @@
               </label>
             </div>
 
-            <button onclick="startVideoGeneration()" id="btn-generate" class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 text-white font-extrabold text-sm tracking-wide glow-btn transition flex items-center justify-center gap-2">
+            <button onclick="startVideoGeneration()" id="btn-generate" class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white font-extrabold text-sm tracking-wide glow-btn transition flex items-center justify-center gap-2">
               <i class="fa-solid fa-wand-magic-sparkles"></i>
-              <span>GENERATE VIRAL SHORT</span>
+              <span>GENERATE WITH GOOGLE VEO</span>
             </button>
           </div>
 
         </div>
 
-        <!-- Right Column: Live Short Preview & Features Card -->
+        <!-- Right Column Preview -->
         <div class="space-y-6">
-
-          <!-- 9:16 Mockup Card -->
           <div class="glass-panel p-6 rounded-2xl space-y-4">
             <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider flex items-center gap-2">
-              <i class="fa-brands fa-youtube text-red-500"></i> Output Format Preview
+              <i class="fa-brands fa-youtube text-red-500"></i> 1080x1920 Short Preview
             </h3>
 
-            <!-- Smartphone Frame Mockup -->
             <div class="relative w-full aspect-[9/16] bg-black rounded-2xl overflow-hidden border-2 border-gray-800 shadow-2xl flex flex-col justify-between p-4">
-              
-              <!-- Video Placeholder Background / Canvas -->
-              <div id="preview-placeholder" class="absolute inset-0 bg-gradient-to-b from-purple-950/40 via-black to-blue-950/60 flex flex-col items-center justify-center text-center p-6">
-                <div class="w-16 h-16 rounded-full bg-purple-600/20 border border-purple-500/40 flex items-center justify-center text-purple-400 mb-3 animate-pulse">
-                  <i class="fa-solid fa-clapperboard text-2xl"></i>
+              <div id="preview-placeholder" class="absolute inset-0 bg-gradient-to-b from-blue-950/40 via-purple-950/40 to-black flex flex-col items-center justify-center text-center p-6">
+                <div class="w-16 h-16 rounded-full bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 mb-3 animate-pulse">
+                  <i class="fa-solid fa-video text-2xl"></i>
                 </div>
-                <p class="text-xs font-bold text-white">1080 × 1920 Full HD</p>
-                <p class="text-[11px] text-gray-400 mt-1">Automatic animated captions, ducked audio & HD video</p>
+                <p class="text-xs font-bold text-white">Google Veo AI Engine</p>
+                <p class="text-[11px] text-gray-400 mt-1">Photorealistic generative scenes + dynamic captions</p>
               </div>
 
-              <!-- Top UI Icons -->
               <div class="relative z-10 flex justify-between items-center text-white/80 text-xs">
-                <span class="bg-black/60 px-2 py-0.5 rounded backdrop-blur text-[10px] font-bold text-purple-400">#SHORTS</span>
+                <span class="bg-black/60 px-2 py-0.5 rounded backdrop-blur text-[10px] font-bold text-blue-400">#VEO_AI</span>
                 <i class="fa-solid fa-ellipsis-vertical"></i>
               </div>
 
-              <!-- Center Highlight Animated Captions Simulation -->
               <div class="relative z-10 text-center my-auto px-2">
                 <div class="inline-block bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-white/10 shadow-lg">
-                  <span class="text-yellow-400 font-extrabold text-sm uppercase tracking-wider drop-shadow-md">3 PSYCHOLOGY TRICKS</span>
+                  <span class="text-yellow-400 font-extrabold text-sm uppercase tracking-wider">3 DARK PSYCHOLOGY TRICKS</span>
                 </div>
               </div>
 
-              <!-- Bottom Creator Bar -->
               <div class="relative z-10 space-y-2">
                 <div class="flex items-center gap-2">
-                  <div class="w-6 h-6 rounded-full bg-purple-600 flex items-center justify-center text-[10px] font-bold text-white">AI</div>
+                  <div class="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white">AI</div>
                   <span class="text-xs font-bold text-white">@YourChannel</span>
                 </div>
-                <p class="text-[11px] text-gray-300 line-clamp-2">The shocking truth you experience every day... #viral #facts</p>
+                <p class="text-[11px] text-gray-300 line-clamp-2">The shocking truth you experience every day... #shorts</p>
               </div>
             </div>
-
-            <!-- Pipeline Highlights -->
-            <div class="space-y-2 text-xs text-gray-400 pt-2 border-t border-gray-800">
-              <div class="flex items-center gap-2 text-gray-300">
-                <i class="fa-solid fa-check text-green-400"></i> 100% Free Edge-TTS Voices
-              </div>
-              <div class="flex items-center gap-2 text-gray-300">
-                <i class="fa-solid fa-check text-green-400"></i> Word-level Burned-In Dynamic Subtitles
-              </div>
-              <div class="flex items-center gap-2 text-gray-300">
-                <i class="fa-solid fa-check text-green-400"></i> YouTube Monetization Safe (Original)
-              </div>
-            </div>
-
           </div>
-
         </div>
 
       </div>
-
     </div>
 
-    <!-- TAB 2: VIDEO GALLERY & PUBLISHER -->
+    <!-- TAB 2: VIDEO GALLERY -->
     <div id="tab-gallery" class="hidden space-y-6">
       <div class="flex items-center justify-between">
         <div>
@@ -359,39 +301,28 @@
         </button>
       </div>
 
-      <!-- Videos Grid -->
-      <div id="video-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <!-- Videos will be dynamically injected here -->
-      </div>
+      <div id="video-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
     </div>
 
     <!-- TAB 3: SETTINGS -->
     <div id="tab-settings" class="hidden max-w-2xl mx-auto space-y-6">
       <div class="glass-panel p-6 rounded-2xl space-y-6">
-        <h2 class="text-xl font-bold text-white">Automation Settings & API Keys</h2>
-        <p class="text-xs text-gray-400">The generator works 100% free with built-in procedural visuals and neural TTS without any API keys. Adding optional keys unlocks live stock b-roll and direct YouTube uploads.</p>
-
+        <h2 class="text-xl font-bold text-white">AI Engine & API Keys</h2>
+        
         <div class="space-y-4">
-          <!-- Pexels API Key -->
           <div>
             <label class="block text-xs font-bold text-gray-300 mb-1">
-              Pexels API Key <span class="text-gray-500 font-normal">(Optional — For live stock video downloads)</span>
+              Google Gemini / Veo API Key <span class="text-blue-400">(Recommended for Google Veo AI Video)</span>
             </label>
-            <input type="text" id="setting-pexels" placeholder="Paste free Pexels API key here" class="w-full bg-black/50 border border-gray-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-white text-xs focus:outline-none" />
-            <span class="text-[10px] text-gray-500">Get a free key instantly at pexels.com/api</span>
+            <input type="password" id="setting-veo" placeholder="Paste Google AI Studio / Gemini API key" class="w-full bg-black/50 border border-gray-700 focus:border-blue-500 rounded-xl px-4 py-2.5 text-white text-xs focus:outline-none" />
+            <span class="text-[10px] text-gray-500">Get your key from aistudio.google.com</span>
           </div>
 
-          <!-- YouTube OAuth Status -->
-          <div class="p-4 rounded-xl bg-black/40 border border-gray-800 space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-white flex items-center gap-2">
-                <i class="fa-brands fa-youtube text-red-500"></i> YouTube Channel Integration
-              </span>
-              <span class="text-[10px] px-2 py-0.5 rounded bg-gray-800 text-gray-300">Ready for OAuth2</span>
-            </div>
-            <p class="text-[11px] text-gray-400">
-              To upload directly to your YouTube channel, place your Google Cloud <code class="text-purple-400">client_secrets.json</code> in the project directory. If absent, the app allows instant 1-click video downloads!
-            </p>
+          <div>
+            <label class="block text-xs font-bold text-gray-300 mb-1">
+              Pexels API Key <span class="text-gray-500">(Optional for stock b-roll)</span>
+            </label>
+            <input type="text" id="setting-pexels" placeholder="Paste free Pexels API key" class="w-full bg-black/50 border border-gray-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-white text-xs focus:outline-none" />
           </div>
 
           <button onclick="saveSettings()" class="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition">
@@ -406,32 +337,28 @@
   <!-- LIVE GENERATION PROGRESS MODAL -->
   <div id="generation-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
     <div class="glass-panel max-w-md w-full p-6 sm:p-8 rounded-3xl border border-purple-500/30 shadow-2xl space-y-6 text-center">
-      
-      <!-- Animated Icon -->
       <div class="relative w-20 h-20 mx-auto">
-        <div class="absolute inset-0 rounded-full bg-purple-600/30 animate-ping"></div>
-        <div class="relative w-20 h-20 rounded-full bg-gradient-to-tr from-purple-600 to-pink-500 flex items-center justify-center text-white text-3xl shadow-xl shadow-purple-500/40">
+        <div class="absolute inset-0 rounded-full bg-blue-600/30 animate-ping"></div>
+        <div class="relative w-20 h-20 rounded-full bg-gradient-to-tr from-blue-600 via-purple-600 to-pink-500 flex items-center justify-center text-white text-3xl shadow-xl">
           <i class="fa-solid fa-wand-magic-sparkles animate-spin" style="animation-duration: 4s;"></i>
         </div>
       </div>
 
       <div>
-        <h3 class="text-xl font-extrabold text-white" id="modal-title">Generating Your Viral Short...</h3>
-        <p class="text-xs text-purple-300 font-medium mt-1" id="modal-status-text">🧠 Crafting viral hook & script...</p>
+        <h3 class="text-xl font-extrabold text-white" id="modal-title">Generating Your Short...</h3>
+        <p class="text-xs text-blue-300 font-medium mt-1" id="modal-status-text">🎬 Rendering with Google Veo AI...</p>
       </div>
 
-      <!-- Progress Bar -->
       <div class="space-y-2">
         <div class="w-full h-3 bg-gray-800 rounded-full overflow-hidden p-0.5">
-          <div id="modal-progress-bar" class="h-full bg-gradient-to-r from-purple-600 to-pink-500 rounded-full transition-all duration-500 w-1/12"></div>
+          <div id="modal-progress-bar" class="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500 w-1/12"></div>
         </div>
         <div class="flex justify-between text-[11px] text-gray-400 font-semibold">
-          <span>Processing</span>
-          <span id="modal-progress-percent">10%</span>
+          <span>Progress</span>
+          <span id="modal-progress-percent">15%</span>
         </div>
       </div>
 
-      <!-- Completed Success Box (Hidden until done) -->
       <div id="modal-success-box" class="hidden space-y-4 pt-2">
         <video id="modal-video-preview" controls class="w-full rounded-xl aspect-[9/16] bg-black max-h-64 mx-auto object-cover border border-purple-500/40 shadow-lg"></video>
         
@@ -444,7 +371,6 @@
           </button>
         </div>
       </div>
-
     </div>
   </div>
 

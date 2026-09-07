@@ -1,9 +1,11 @@
 """
 Master Pipeline Orchestrator for 1-Click YouTube Short Creation
+Supports Google Veo AI, Edge-TTS, and dynamic cloud/serverless storage.
 """
 import os
 import time
 import uuid
+import tempfile
 import threading
 from backend.services.script_ai import generate_script
 from backend.services.voice_tts import generate_voiceover
@@ -12,20 +14,44 @@ from backend.services.music_synth import generate_background_music
 from backend.services.video_engine import render_short_video
 from backend.services.youtube_upload import upload_video_to_youtube
 
+# Determine writable output directory (handles Vercel / AWS Lambda / Local)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUTPUT_DIR = os.path.join(BASE_DIR, "output")
-TEMP_DIR = os.path.join(BASE_DIR, "temp")
+try:
+    test_out = os.path.join(BASE_DIR, "output")
+    os.makedirs(test_out, exist_ok=True)
+    # Test write permission
+    test_file = os.path.join(test_out, ".perm_test")
+    with open(test_file, "w") as f:
+        f.write("1")
+    os.remove(test_file)
+    OUTPUT_DIR = test_out
+    TEMP_DIR = os.path.join(BASE_DIR, "temp")
+except Exception:
+    # Serverless / Read-only environment fallback to /tmp
+    OUTPUT_DIR = os.path.join(tempfile.gettempdir(), "yt_output")
+    TEMP_DIR = os.path.join(tempfile.gettempdir(), "yt_temp")
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    os.makedirs(TEMP_DIR, exist_ok=True)
 
 # In-memory status tracker for jobs
 JOBS = {}
 
 
-def process_video_job(job_id: str, topic: str, tone: str, voice: str, publish_mode: str, pexels_key: str = ""):
+def process_video_job(
+    job_id: str,
+    topic: str,
+    tone: str,
+    voice: str,
+    publish_mode: str,
+    pexels_key: str = "",
+    veo_key: str = "",
+    use_veo: bool = False
+):
     try:
         JOBS[job_id] = {
             "status": "running",
             "progress": 10,
-            "step": "🧠 Crafting viral hook and script...",
+            "step": "🧠 Crafting viral hook and script with Google Veo prompts...",
             "topic": topic,
             "error": None,
             "result": None
@@ -52,15 +78,20 @@ def process_video_job(job_id: str, topic: str, tone: str, voice: str, publish_mo
         )
         
         JOBS[job_id]["progress"] = 55
-        JOBS[job_id]["step"] = "🎬 Sourcing vertical HD visual footage & background music..."
+        if use_veo or veo_key:
+            JOBS[job_id]["step"] = "🎬 Generating cinematic AI scenes with Google Veo..."
+        else:
+            JOBS[job_id]["step"] = "🎬 Sourcing vertical HD visual footage & background music..."
         
-        # 3. Footage & Music
+        # 3. Footage (Google Veo / Pexels / Procedural) & Music
         footage_paths = fetch_or_create_footage(
             keywords=script_data["keywords"],
             total_duration=45.0,
             output_dir=job_temp,
             mood=script_data.get("music_mood", "cinematic"),
-            pexels_api_key=pexels_key
+            pexels_api_key=pexels_key,
+            veo_prompt=script_data.get("veo_prompt", ""),
+            veo_api_key=veo_key
         )
         
         music_path = os.path.join(job_temp, "bg_music.aac")
@@ -104,7 +135,7 @@ def process_video_job(job_id: str, topic: str, tone: str, voice: str, publish_mo
         JOBS[job_id]["step"] = "🎉 Video created successfully!"
         JOBS[job_id]["result"] = {
             "filename": final_filename,
-            "video_url": f"/output/{final_filename}",
+            "video_url": f"/api/video/{final_filename}",
             "title": script_data["title"],
             "description": script_data["description"],
             "upload_info": upload_result
@@ -118,11 +149,19 @@ def process_video_job(job_id: str, topic: str, tone: str, voice: str, publish_mo
         JOBS[job_id]["step"] = f"❌ Error: {str(e)}"
 
 
-def start_generation_job(topic: str, tone: str, voice: str, publish_mode: str, pexels_key: str = "") -> str:
+def start_generation_job(
+    topic: str,
+    tone: str,
+    voice: str,
+    publish_mode: str,
+    pexels_key: str = "",
+    veo_key: str = "",
+    use_veo: bool = False
+) -> str:
     job_id = str(uuid.uuid4())
     thread = threading.Thread(
         target=process_video_job,
-        args=(job_id, topic, tone, voice, publish_mode, pexels_key),
+        args=(job_id, topic, tone, voice, publish_mode, pexels_key, veo_key, use_veo),
         daemon=True
     )
     thread.start()

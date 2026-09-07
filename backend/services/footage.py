@@ -1,25 +1,19 @@
 """
-Visual Footage Retriever and Procedural Background Generator
-Fetches vertical HD stock footage or procedurally renders stunning 1080x1920 video backdrops.
+Visual Footage Retriever: Google Veo AI, Pexels Stock, and Procedural Generator.
 """
 import os
 import subprocess
 import requests
 import imageio_ffmpeg
+from backend.services.veo_ai import generate_veo_clip
 
 FFMPEG_EXE = imageio_ffmpeg.get_ffmpeg_exe()
 
 
 def generate_procedural_broll(output_path: str, duration: float, mood: str = "cinematic"):
-    """
-    Renders a stunning 1080x1920 vertical video clip using FFmpeg filters.
-    Zero external dependencies, instant rendering, 100% reliable offline.
-    """
     duration = max(5.0, duration)
     
-    # Select visual style based on mood
     if mood == "dark":
-        # Cosmic deep space nebula with slow rotating starfields and color pulse
         filter_complex = (
             f"testsrc=duration={duration}:size=1080x1920:rate=30,format=yuv420p,"
             f"drawbox=x=0:y=0:w=1080:h=1920:color=black@1.0:t=fill,"
@@ -29,7 +23,6 @@ def generate_procedural_broll(output_path: str, duration: float, mood: str = "ci
             f"boxblur=8:1"
         )
     elif mood == "energetic":
-        # High-energy vibrant gradient with glowing wave motion
         filter_complex = (
             f"testsrc=duration={duration}:size=1080x1920:rate=30,format=yuv420p,"
             f"drawbox=x=0:y=0:w=1080:h=1920:color=black@1.0:t=fill,"
@@ -39,7 +32,6 @@ def generate_procedural_broll(output_path: str, duration: float, mood: str = "ci
             f"boxblur=10:1"
         )
     else:
-        # Luxury cinematic deep blue / violet atmospheric flow
         filter_complex = (
             f"testsrc=duration={duration}:size=1080x1920:rate=30,format=yuv420p,"
             f"drawbox=x=0:y=0:w=1080:h=1920:color=black@1.0:t=fill,"
@@ -65,16 +57,35 @@ def generate_procedural_broll(output_path: str, duration: float, mood: str = "ci
     return output_path
 
 
-def fetch_or_create_footage(keywords: list, total_duration: float, output_dir: str, mood: str = "cinematic", pexels_api_key: str = "") -> list:
-    """
-    Fetches online stock videos or generates procedural vertical HD backdrops.
-    Returns list of local video file paths.
-    """
+def fetch_or_create_footage(
+    keywords: list,
+    total_duration: float,
+    output_dir: str,
+    mood: str = "cinematic",
+    pexels_api_key: str = "",
+    veo_prompt: str = "",
+    veo_api_key: str = ""
+) -> list:
     os.makedirs(output_dir, exist_ok=True)
     video_files = []
 
-    # If Pexels API key is present, attempt live search
-    if pexels_api_key:
+    # 1. Check if Google Veo AI mode is requested
+    if veo_prompt and (veo_api_key or os.environ.get("GEMINI_API_KEY")):
+        try:
+            veo_output = os.path.join(output_dir, "veo_scene.mp4")
+            generate_veo_clip(
+                prompt=veo_prompt,
+                output_path=veo_output,
+                api_key=veo_api_key,
+                duration_seconds=int(total_duration)
+            )
+            if os.path.exists(veo_output) and os.path.getsize(veo_output) > 1000:
+                video_files.append(veo_output)
+        except Exception as e:
+            print(f"[Footage] Veo generation error fallback: {e}")
+
+    # 2. Check if Pexels API key is present
+    if not video_files and pexels_api_key:
         headers = {"Authorization": pexels_api_key}
         for idx, kw in enumerate(keywords[:3]):
             try:
@@ -84,7 +95,6 @@ def fetch_or_create_footage(keywords: list, total_duration: float, output_dir: s
                     data = resp.json()
                     if data.get("videos"):
                         video_files_data = data["videos"][0]["video_files"]
-                        # Find best HD vertical link
                         best_link = None
                         for vf in video_files_data:
                             if vf.get("height", 0) >= 1080 and vf.get("width", 0) <= 1080:
@@ -102,9 +112,9 @@ def fetch_or_create_footage(keywords: list, total_duration: float, output_dir: s
                                         f.write(chunk)
                             video_files.append(vid_path)
             except Exception as e:
-                print(f"[Footage] Pexels download fallback: {e}")
+                print(f"[Footage] Pexels fallback: {e}")
 
-    # If no online clips downloaded, produce high-speed dynamic procedural b-roll
+    # 3. Procedural generator fallback
     if not video_files:
         clip_path = os.path.join(output_dir, "procedural_backdrop.mp4")
         generate_procedural_broll(clip_path, total_duration + 2.0, mood=mood)

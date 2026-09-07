@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AutoShorts AI — 1-Click YouTube Automation with Google Veo</title>
+  <title>AutoShorts AI — Complete YouTube Automation & Channel Studio</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -16,7 +16,10 @@
               500: '#a855f7',
               600: '#9333ea',
               700: '#7e22ce',
-              google: '#4285F4'
+              google: '#4285F4',
+              youtube: '#FF0000',
+              accent: '#06b6d4',
+              emerald: '#10b981'
             }
           }
         }
@@ -26,15 +29,18 @@
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <style>
-    body {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-    }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
     .glass-panel {
-      background: rgba(18, 18, 24, 0.75);
+      background: rgba(18, 20, 29, 0.75);
       backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    .glass-card {
+      background: rgba(26, 29, 44, 0.6);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
     }
     .glow-btn {
       box-shadow: 0 0 25px -5px rgba(168, 85, 247, 0.5);
@@ -42,297 +48,797 @@
     .glow-btn:hover {
       box-shadow: 0 0 35px 0px rgba(168, 85, 247, 0.8);
     }
+    .glow-blue {
+      box-shadow: 0 0 25px -5px rgba(66, 133, 244, 0.5);
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0b0c10; }
+    ::-webkit-scrollbar-thumb { background: #2a2d3d; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #3d425a; }
   </style>
 </head>
-<body class="bg-[#0b0c10] text-gray-100 min-h-screen flex flex-col selection:bg-purple-600 selection:text-white">
+<body class="bg-[#0b0c10] text-gray-100 min-h-screen flex selection:bg-purple-600 selection:text-white overflow-x-hidden">
 
-  <!-- TOP NAVIGATION BAR -->
-  <header class="border-b border-gray-800/80 sticky top-0 z-40 bg-[#0b0c10]/90 backdrop-blur-md">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <!-- Logo -->
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
+  <!-- LEFT SIDEBAR NAVIGATION -->
+  <aside class="w-64 border-r border-gray-800/80 bg-[#0e1017]/95 flex flex-col justify-between shrink-0 sticky top-0 h-screen z-30 overflow-y-auto">
+    <div class="p-4 space-y-6">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-3 px-2">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 via-pink-500 to-blue-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
           <i class="fa-brands fa-youtube text-white text-xl"></i>
         </div>
         <div>
-          <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-gray-200 to-purple-400 bg-clip-text text-transparent">
+          <span class="text-lg font-extrabold tracking-tight bg-gradient-to-r from-white via-gray-200 to-purple-400 bg-clip-text text-transparent">
             AutoShorts<span class="text-purple-500">.AI</span>
           </span>
-          <span class="hidden sm:inline-block ml-2 px-2 py-0.5 text-xs font-semibold bg-blue-950/80 text-blue-300 border border-blue-800/50 rounded-full">
-            <i class="fa-brands fa-google mr-1"></i> Google Veo Enabled
-          </span>
-        </div>
-      </div>
-
-      <!-- Navigation Tabs -->
-      <nav class="flex items-center gap-1 sm:gap-2">
-        <button onclick="switchTab('wizard')" id="tab-btn-wizard" class="px-3.5 py-1.5 rounded-lg text-sm font-semibold transition bg-purple-600/20 text-purple-300 border border-purple-500/30">
-          <i class="fa-solid fa-wand-magic-sparkles mr-1.5"></i> Generator
-        </button>
-        <button onclick="switchTab('gallery')" id="tab-btn-gallery" class="px-3.5 py-1.5 rounded-lg text-sm font-semibold transition text-gray-400 hover:text-white hover:bg-gray-800/60">
-          <i class="fa-solid fa-film mr-1.5"></i> Video Library (<span id="video-count">0</span>)
-        </button>
-        <button onclick="switchTab('settings')" id="tab-btn-settings" class="px-3.5 py-1.5 rounded-lg text-sm font-semibold transition text-gray-400 hover:text-white hover:bg-gray-800/60">
-          <i class="fa-solid fa-gear mr-1.5"></i> Settings
-        </button>
-      </nav>
-    </div>
-  </header>
-
-  <!-- MAIN CONTAINER -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-    <!-- TAB 1: 1-CLICK GENERATOR WIZARD -->
-    <div id="tab-wizard" class="space-y-8">
-      
-      <!-- Hero Banner -->
-      <div class="relative overflow-hidden rounded-3xl p-8 bg-gradient-to-br from-purple-900/30 via-black to-blue-950/30 border border-purple-500/20 shadow-2xl">
-        <div class="relative z-10 max-w-3xl">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-purple-500/10 text-purple-400 border border-purple-500/20 mb-3">
-            <i class="fa-solid fa-bolt"></i> Powered by Google Veo & Edge-TTS
+          <div class="text-[10px] text-gray-400 font-semibold uppercase tracking-wider flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span> Studio 2.0
           </div>
-          <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
-            Generate High-Retention YouTube Shorts with <span class="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Google Veo AI</span>
-          </h1>
-          <p class="mt-2 text-gray-400 text-sm sm:text-base">
-            Answer 3 quick questions. The system writes the viral script, synthesizes neural voiceovers, creates cinematic Google Veo visuals, and builds a ready-to-post 1080x1920 Short.
-          </p>
         </div>
       </div>
 
-      <!-- THE 3-QUESTION FORM -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Navigation Links -->
+      <div class="space-y-6 text-xs">
+        
+        <!-- Section: Command Center -->
+        <div class="space-y-1">
+          <div class="px-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Command Center</div>
+          <button onclick="switchView('dashboard')" id="nav-dashboard" class="nav-link w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-semibold transition bg-purple-600/20 text-purple-300 border border-purple-500/30">
+            <div class="flex items-center gap-2.5">
+              <i class="fa-solid fa-chart-line text-sm w-4"></i> Dashboard & AI Brain
+            </div>
+            <span class="w-2 h-2 rounded-full bg-purple-400"></span>
+          </button>
+          <button onclick="switchView('agents')" id="nav-agents" class="nav-link w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-semibold transition text-gray-400 hover:text-white hover:bg-gray-800/50">
+            <div class="flex items-center gap-2.5">
+              <i class="fa-solid fa-network-wired text-sm w-4 text-cyan-400"></i> Multi-Agent Pipeline
+            </div>
+            <span class="px-1.5 py-0.5 text-[9px] rounded bg-cyan-950 text-cyan-300 font-bold">8 Agents</span>
+          </button>
+        </div>
 
-        <!-- Left Form Column -->
-        <div class="lg:col-span-2 space-y-6">
+        <!-- Section: Creation Suite -->
+        <div class="space-y-1">
+          <div class="px-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Creation Suite</div>
+          <button onclick="switchView('creator')" id="nav-creator" class="nav-link w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-semibold transition text-gray-400 hover:text-white hover:bg-gray-800/50">
+            <i class="fa-solid fa-wand-magic-sparkles text-sm w-4 text-pink-400"></i> 1-Click Video Engine
+          </button>
+          <button onclick="switchView('ideas')" id="nav-ideas" class="nav-link w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-semibold transition text-gray-400 hover:text-white hover:bg-gray-800/50">
+            <i class="fa-solid fa-lightbulb text-sm w-4 text-yellow-400"></i> AI Video Ideas
+          </button>
+          <button onclick="switchView('scripts')" id="nav-scripts" class="nav-link w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-semibold transition text-gray-400 hover:text-white hover:bg-gray-800/50">
+            <i class="fa-solid fa-scroll text-sm w-4 text-purple-400"></i> AI Script Studio
+          </button>
+          <button onclick="switchView('voice')" id="nav-voice" class="nav-link w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-semibold transition text-gray-400 hover:text-white hover:bg-gray-800/50">
+            <i class="fa-solid fa-microphone-lines text-sm w-4 text-emerald-400"></i> Voiceover Studio
+          </button>
+          <button onclick="switchView('thumbnails')" id="nav-thumbnails" class="nav-link w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-semibold transition text-gray-400 hover:text-white hover:bg-gray-800/50">
+            <i class="fa-solid fa-image text-sm w-4 text-orange-400"></i> Thumbnail A/B Tester
+          </button>
+        </div>
 
-          <!-- QUESTION 1: TOPIC & NICHE -->
-          <div class="glass-panel p-6 rounded-2xl space-y-4">
-            <div class="flex items-center justify-between">
+        <!-- Section: Growth & Automation -->
+        <div class="space-y-1">
+          <div class="px-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Growth & Distribution</div>
+          <button onclick="switchView('research')" id="nav-research" class="nav-link w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-semibold transition text-gray-400 hover:text-white hover:bg-gray-800/50">
+            <i class="fa-solid fa-magnifying-glass-chart text-sm w-4 text-blue-400"></i> Niche & Competitors
+          </button>
+          <button onclick="switchView('seo')" id="nav-seo" class="nav-link w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-semibold transition text-gray-400 hover:text-white hover:bg-gray-800/50">
+            <i class="fa-solid fa-tags text-sm w-4 text-indigo-400"></i> YouTube SEO Ranker
+          </button>
+          <button onclick="switchView('repurposer')" id="nav-repurposer" class="nav-link w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-semibold transition text-gray-400 hover:text-white hover:bg-gray-800/50">
+            <i class="fa-solid fa-arrows-spin text-sm w-4 text-teal-400"></i> 1-Click Repurposer
+          </button>
+          <button onclick="switchView('calendar')" id="nav-calendar" class="nav-link w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-semibold transition text-gray-400 hover:text-white hover:bg-gray-800/50">
+            <i class="fa-solid fa-calendar-days text-sm w-4 text-rose-400"></i> Content Calendar
+          </button>
+          <button onclick="switchView('gallery')" id="nav-gallery" class="nav-link w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-semibold transition text-gray-400 hover:text-white hover:bg-gray-800/50">
+            <div class="flex items-center gap-2.5">
+              <i class="fa-solid fa-film text-sm w-4 text-purple-400"></i> Video Library
+            </div>
+            <span id="sidebar-video-count" class="px-1.5 py-0.5 text-[10px] rounded bg-gray-800 text-gray-300 font-bold">0</span>
+          </button>
+        </div>
+
+        <!-- Section: Business & Team -->
+        <div class="space-y-1">
+          <div class="px-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Business & Team</div>
+          <button onclick="switchView('monetization')" id="nav-monetization" class="nav-link w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-semibold transition text-gray-400 hover:text-white hover:bg-gray-800/50">
+            <i class="fa-solid fa-dollar-sign text-sm w-4 text-green-400"></i> Monetization & CRM
+          </button>
+          <button onclick="switchView('team')" id="nav-team" class="nav-link w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-semibold transition text-gray-400 hover:text-white hover:bg-gray-800/50">
+            <i class="fa-solid fa-users text-sm w-4 text-blue-300"></i> Team Workspace
+          </button>
+          <button onclick="switchView('settings')" id="nav-settings" class="nav-link w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-semibold transition text-gray-400 hover:text-white hover:bg-gray-800/50">
+            <i class="fa-solid fa-gear text-sm w-4 text-gray-400"></i> Settings & Keys
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- User Profile Footer -->
+    <div class="p-4 border-t border-gray-800/80 bg-black/40 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center font-bold text-xs text-white">
+          EK
+        </div>
+        <div>
+          <div class="text-xs font-bold text-white leading-none">Cyril (Admin)</div>
+          <div class="text-[10px] text-purple-400 mt-0.5">Enterprise Pro Plan</div>
+        </div>
+      </div>
+      <i class="fa-solid fa-shield-halved text-purple-400 text-xs"></i>
+    </div>
+  </aside>
+
+  <!-- MAIN APP WRAPPER -->
+  <div class="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
+
+    <!-- TOP APP HEADER -->
+    <header class="h-16 border-b border-gray-800/80 bg-[#0b0c10]/90 backdrop-blur-md sticky top-0 z-20 px-6 flex items-center justify-between gap-4">
+      
+      <!-- Multi-Channel Selector -->
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gray-900 border border-gray-800 text-xs">
+          <i class="fa-brands fa-youtube text-red-500 text-sm"></i>
+          <span class="text-gray-400 font-medium">Channel:</span>
+          <select id="channel-selector" onchange="changeChannel(this.value)" class="bg-transparent text-white font-bold focus:outline-none cursor-pointer">
+            <option value="Apex Tech">Apex Tech (142.8K)</option>
+            <option value="Dark Psychology">Dark Psychology (328.1K)</option>
+          </select>
+        </div>
+
+        <div class="hidden sm:inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-purple-950/60 text-purple-300 border border-purple-800/40">
+          <i class="fa-solid fa-brain text-purple-400"></i> AI Channel Brain Active
+        </div>
+      </div>
+
+      <!-- Right Action Bar -->
+      <div class="flex items-center gap-3">
+        <button onclick="switchView('creator')" class="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-500 text-white font-bold text-xs glow-btn transition flex items-center gap-2">
+          <i class="fa-solid fa-plus"></i>
+          <span>Create New Video</span>
+        </button>
+      </div>
+
+    </header>
+
+    <!-- CONTENT CONTAINER -->
+    <main class="flex-1 p-6 sm:p-8 max-w-7xl w-full mx-auto space-y-8">
+
+      <!-- ========================================================= -->
+      <!-- VIEW 1: EXECUTIVE DASHBOARD & AI CHANNEL BRAIN            -->
+      <!-- ========================================================= -->
+      <div id="view-dashboard" class="space-y-8">
+        
+        <!-- Welcome & Brain Banner -->
+        <div class="relative overflow-hidden rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-purple-950/40 via-black to-blue-950/30 border border-purple-500/20 shadow-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div class="space-y-2 max-w-2xl">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-purple-500/10 text-purple-400 border border-purple-500/20">
+              <i class="fa-solid fa-bolt"></i> AI Channel Brain Engine
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-white">
+              Welcome back, <span class="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Cyril</span>
+            </h1>
+            <p class="text-xs sm:text-sm text-gray-300">
+              Your channel is pacing <span class="text-green-400 font-bold">+24.8% higher</span> in views this week. The AI Brain has identified 2 high-leverage content opportunities below.
+            </p>
+          </div>
+          <button onclick="switchView('agents')" class="px-5 py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold text-xs glow-blue transition flex items-center gap-2">
+            <i class="fa-solid fa-play"></i> Run Autonomous Agent Pass
+          </button>
+        </div>
+
+        <!-- Real-Time Metrics Grid -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          <div class="glass-panel p-5 rounded-2xl space-y-2">
+            <div class="flex items-center justify-between text-xs text-gray-400">
+              <span>Total Subscribers</span>
+              <i class="fa-solid fa-users text-purple-400"></i>
+            </div>
+            <div class="text-2xl sm:text-3xl font-extrabold text-white" id="stat-subs">142,850</div>
+            <div class="text-[11px] text-green-400 font-semibold" id="stat-subs-change">+8,420 (this mo)</div>
+          </div>
+
+          <div class="glass-panel p-5 rounded-2xl space-y-2">
+            <div class="flex items-center justify-between text-xs text-gray-400">
+              <span>Views (Last 28 Days)</span>
+              <i class="fa-solid fa-eye text-blue-400"></i>
+            </div>
+            <div class="text-2xl sm:text-3xl font-extrabold text-white" id="stat-views">1,840,290</div>
+            <div class="text-[11px] text-green-400 font-semibold" id="stat-views-change">+24.8% vs last month</div>
+          </div>
+
+          <div class="glass-panel p-5 rounded-2xl space-y-2">
+            <div class="flex items-center justify-between text-xs text-gray-400">
+              <span>Watch Time</span>
+              <i class="fa-solid fa-clock text-pink-400"></i>
+            </div>
+            <div class="text-2xl sm:text-3xl font-extrabold text-white" id="stat-watch">48,200 hrs</div>
+            <div class="text-[11px] text-purple-300 font-semibold">Avg Duration: 82%</div>
+          </div>
+
+          <div class="glass-panel p-5 rounded-2xl space-y-2">
+            <div class="flex items-center justify-between text-xs text-gray-400">
+              <span>Est. Revenue (28d)</span>
+              <i class="fa-solid fa-dollar-sign text-emerald-400"></i>
+            </div>
+            <div class="text-2xl sm:text-3xl font-extrabold text-emerald-400" id="stat-rev">$6,420.50</div>
+            <div class="text-[11px] text-green-400 font-semibold" id="stat-rev-change">+18.2% CPM increase</div>
+          </div>
+        </div>
+
+        <!-- AI Channel Brain Action Cards -->
+        <div class="glass-panel p-6 rounded-2xl space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-brain text-purple-400"></i> Proactive AI Channel Brain Feed
+            </h3>
+            <span class="text-xs text-gray-400">Auto-updated hourly</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="brain-feed-container">
+            <!-- Brain Item 1 -->
+            <div class="p-4 rounded-xl bg-purple-950/20 border border-purple-500/30 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-purple-600/30 text-purple-300 uppercase">Viral Opportunity</span>
+                <span class="text-[11px] text-yellow-400 font-bold">High Impact</span>
+              </div>
+              <div>
+                <h4 class="font-bold text-sm text-white">Viral Spike: Google Veo 2 & Sora Comparison</h4>
+                <p class="text-xs text-gray-300 mt-1">Competitor searches jumped +142% this week. Low volume of 9:16 vertical Shorts in this subtopic.</p>
+              </div>
+              <button onclick="generateScriptFromTopic('Google Veo 2 vs OpenAI Sora Full Comparison')" class="w-full py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition">
+                ⚡ 1-Click Generate This Short
+              </button>
+            </div>
+
+            <!-- Brain Item 2 -->
+            <div class="p-4 rounded-xl bg-blue-950/20 border border-blue-500/30 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-blue-600/30 text-blue-300 uppercase">Retention Fix</span>
+                <span class="text-[11px] text-cyan-400 font-bold">Optimization</span>
+              </div>
+              <div>
+                <h4 class="font-bold text-sm text-white">0-3s Hook Acceleration</h4>
+                <p class="text-xs text-gray-300 mt-1">Shorts with highlighted active words in the first 3 seconds saw an average retention gain of +14% APV.</p>
+              </div>
+              <button onclick="switchView('creator')" class="w-full py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition">
+                🎨 Open Dynamic Subtitle Studio
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ========================================================= -->
+      <!-- VIEW 2: AUTONOMOUS MULTI-AGENT PIPELINE                   -->
+      <!-- ========================================================= -->
+      <div id="view-agents" class="hidden space-y-8">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h2 class="text-2xl font-extrabold text-white flex items-center gap-3">
+              <i class="fa-solid fa-network-wired text-cyan-400"></i> Autonomous Multi-Agent Pipeline
+            </h2>
+            <p class="text-xs text-gray-400">8 specialized AI agents collaborate end-to-end to research, write, voice, render, optimize, and schedule videos.</p>
+          </div>
+          <button onclick="triggerAutonomousPipeline()" id="btn-run-agents" class="px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold text-xs glow-blue transition flex items-center gap-2">
+            <i class="fa-solid fa-play"></i> Run 8-Agent Pipeline
+          </button>
+        </div>
+
+        <!-- Agents Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="agent-cards-grid">
+          <!-- 8 Agent Cards injected dynamically -->
+        </div>
+
+        <!-- Pipeline Execution Logs & Artifact Preview -->
+        <div class="glass-panel p-6 rounded-2xl space-y-4">
+          <h3 class="text-sm font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-terminal text-purple-400"></i> Live Agent Collaboration Output
+          </h3>
+          <div id="agent-output-console" class="p-4 rounded-xl bg-black/60 font-mono text-xs text-gray-300 space-y-2 max-h-96 overflow-y-auto border border-gray-800">
+            <p class="text-gray-500">// Ready. Click 'Run 8-Agent Pipeline' to trigger autonomous multi-agent creation pass...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================================= -->
+      <!-- VIEW 3: 1-CLICK VIDEO GENERATION ENGINE                   -->
+      <!-- ========================================================= -->
+      <div id="view-creator" class="hidden space-y-8">
+        <!-- Hero Banner -->
+        <div class="relative overflow-hidden rounded-3xl p-8 bg-gradient-to-br from-purple-900/30 via-black to-blue-950/30 border border-purple-500/20 shadow-2xl">
+          <div class="relative z-10 max-w-3xl">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-purple-500/10 text-purple-400 border border-purple-500/20 mb-3">
+              <i class="fa-solid fa-bolt"></i> Powered by Google Veo & Neural Edge-TTS
+            </div>
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
+              Create High-Retention YouTube Shorts with <span class="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Google Veo AI</span>
+            </h1>
+            <p class="mt-2 text-gray-400 text-xs sm:text-sm">
+              Answer 3 simple questions. The engine scripts the hook, records human voiceover, generates cinematic scenes with Google Veo, and burns dynamic animated subtitles.
+            </p>
+          </div>
+        </div>
+
+        <!-- Form & Preview -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div class="lg:col-span-2 space-y-6">
+
+            <!-- Q1: Topic -->
+            <div class="glass-panel p-6 rounded-2xl space-y-4">
               <label class="text-base font-bold text-white flex items-center gap-2">
                 <span class="w-6 h-6 rounded-full bg-purple-600 text-white text-xs flex items-center justify-center font-bold">1</span>
                 What is your video topic or niche?
               </label>
+
+              <div class="flex flex-wrap gap-2 pt-1">
+                <button type="button" onclick="setTopic('3 Dark Psychology Tricks You Experience Everyday')" class="px-3 py-1.5 rounded-full text-xs font-medium bg-gray-800/80 hover:bg-purple-900/40 text-gray-300 hover:text-purple-200 border border-gray-700/60 transition">
+                  🧠 Psychology Tricks
+                </button>
+                <button type="button" onclick="setTopic('The Rule That Changes Everything in 6 Months (Motivation)')" class="px-3 py-1.5 rounded-full text-xs font-medium bg-gray-800/80 hover:bg-purple-900/40 text-gray-300 hover:text-purple-200 border border-gray-700/60 transition">
+                  🚀 Relentless Motivation
+                </button>
+                <button type="button" onclick="setTopic('The Scariest Sound Recorded in Deep Space')" class="px-3 py-1.5 rounded-full text-xs font-medium bg-gray-800/80 hover:bg-purple-900/40 text-gray-300 hover:text-purple-200 border border-gray-700/60 transition">
+                  🌌 Deep Space Mysteries
+                </button>
+                <button type="button" onclick="setTopic('The Shocking Truth About Artificial General Intelligence')" class="px-3 py-1.5 rounded-full text-xs font-medium bg-gray-800/80 hover:bg-purple-900/40 text-gray-300 hover:text-purple-200 border border-gray-700/60 transition">
+                  🤖 Future AI Secrets
+                </button>
+              </div>
+
+              <input type="text" id="input-topic" value="3 Dark Psychology Tricks You Experience Everyday" placeholder="e.g. Why we dream when we sleep" class="w-full bg-black/50 border border-gray-700 focus:border-purple-500 rounded-xl px-4 py-3 text-white text-sm focus:outline-none transition" />
             </div>
 
-            <!-- Preset Topic Chips -->
-            <div class="flex flex-wrap gap-2 pt-1">
-              <button type="button" onclick="setTopic('3 Dark Psychology Tricks You Experience Everyday')" class="topic-chip px-3 py-1.5 rounded-full text-xs font-medium bg-gray-800/80 hover:bg-purple-900/40 text-gray-300 hover:text-purple-200 border border-gray-700/60 hover:border-purple-500/40 transition">
-                🧠 Psychology Tricks
-              </button>
-              <button type="button" onclick="setTopic('The Rule That Changes Everything in 6 Months (Motivation)')" class="topic-chip px-3 py-1.5 rounded-full text-xs font-medium bg-gray-800/80 hover:bg-purple-900/40 text-gray-300 hover:text-purple-200 border border-gray-700/60 hover:border-purple-500/40 transition">
-                🚀 Relentless Motivation
-              </button>
-              <button type="button" onclick="setTopic('The Scariest Sound Recorded in Deep Space')" class="topic-chip px-3 py-1.5 rounded-full text-xs font-medium bg-gray-800/80 hover:bg-purple-900/40 text-gray-300 hover:text-purple-200 border border-gray-700/60 hover:border-purple-500/40 transition">
-                🌌 Deep Space Mysteries
-              </button>
-              <button type="button" onclick="setTopic('The Shocking Truth About Artificial General Intelligence')" class="topic-chip px-3 py-1.5 rounded-full text-xs font-medium bg-gray-800/80 hover:bg-purple-900/40 text-gray-300 hover:text-purple-200 border border-gray-700/60 hover:border-purple-500/40 transition">
-                🤖 Future AI Secrets
-              </button>
-            </div>
-
-            <!-- Custom Topic Input -->
-            <div class="relative">
-              <input type="text" id="input-topic" value="3 Dark Psychology Tricks You Experience Everyday" placeholder="e.g. Why we dream when we sleep, or 5 Habits of successful founders" class="w-full bg-black/50 border border-gray-700 focus:border-purple-500 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/30 transition placeholder-gray-500" />
-            </div>
-          </div>
-
-          <!-- QUESTION 2: VISUAL GENERATOR & TONE -->
-          <div class="glass-panel p-6 rounded-2xl space-y-4">
-            <div class="flex items-center justify-between">
+            <!-- Q2: Engine & Tone -->
+            <div class="glass-panel p-6 rounded-2xl space-y-4">
               <label class="text-base font-bold text-white flex items-center gap-2">
                 <span class="w-6 h-6 rounded-full bg-purple-600 text-white text-xs flex items-center justify-center font-bold">2</span>
                 Choose Video Engine & Visual Style
               </label>
-            </div>
 
-            <!-- Engine Options -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-              <div onclick="selectEngine('veo')" id="engine-card-veo" class="cursor-pointer p-4 rounded-xl border border-blue-500 bg-blue-950/30 transition hover:scale-[1.01]">
-                <div class="flex items-center gap-2 font-bold text-xs text-white">
-                  <i class="fa-brands fa-google text-blue-400"></i> Google Veo AI Mode
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                <div onclick="selectEngine('veo')" id="engine-card-veo" class="cursor-pointer p-4 rounded-xl border border-blue-500 bg-blue-950/30 transition">
+                  <div class="flex items-center gap-2 font-bold text-xs text-white">
+                    <i class="fa-brands fa-google text-blue-400"></i> Google Veo AI Mode
+                  </div>
+                  <div class="text-[11px] text-gray-300 mt-1">Generates custom cinematic 9:16 AI video scenes matching your script.</div>
                 </div>
-                <div class="text-[11px] text-gray-300 mt-1">Generates custom cinematic 9:16 AI video scenes matching your script.</div>
-              </div>
-              <div onclick="selectEngine('procedural')" id="engine-card-procedural" class="cursor-pointer p-4 rounded-xl border border-gray-800 bg-black/40 transition hover:scale-[1.01]">
-                <div class="flex items-center gap-2 font-bold text-xs text-white">
-                  <i class="fa-solid fa-bolt text-yellow-400"></i> Fast Free Engine
+                <div onclick="selectEngine('procedural')" id="engine-card-procedural" class="cursor-pointer p-4 rounded-xl border border-gray-800 bg-black/40 transition">
+                  <div class="flex items-center gap-2 font-bold text-xs text-white">
+                    <i class="fa-solid fa-bolt text-yellow-400"></i> Fast Free Engine
+                  </div>
+                  <div class="text-[11px] text-gray-300 mt-1">Instant rendering with dynamic motion backdrops. 0 cost.</div>
                 </div>
-                <div class="text-[11px] text-gray-300 mt-1">Instant rendering with dynamic motion backdrops. 0 cost, 0 API keys.</div>
               </div>
-            </div>
-            <input type="hidden" id="input-engine" value="veo" />
+              <input type="hidden" id="input-engine" value="veo" />
 
-            <!-- Tone Selector -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="tone-selector">
-              <div onclick="selectTone('energetic')" class="tone-card active cursor-pointer p-3.5 rounded-xl border border-purple-500 bg-purple-950/30 text-center transition">
-                <div class="text-xl mb-1">⚡</div>
-                <div class="font-bold text-xs text-white">Viral Energy</div>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div onclick="selectTone('energetic')" class="tone-card active cursor-pointer p-3 rounded-xl border border-purple-500 bg-purple-950/30 text-center text-xs font-bold text-white">⚡ Viral Energy</div>
+                <div onclick="selectTone('dark')" class="tone-card cursor-pointer p-3 rounded-xl border border-gray-800 bg-black/40 text-center text-xs font-bold text-white">🤫 Dark Mystery</div>
+                <div onclick="selectTone('cinematic')" class="tone-card cursor-pointer p-3 rounded-xl border border-gray-800 bg-black/40 text-center text-xs font-bold text-white">🎬 Cinematic</div>
+                <div onclick="selectTone('chill')" class="tone-card cursor-pointer p-3 rounded-xl border border-gray-800 bg-black/40 text-center text-xs font-bold text-white">💡 Inspiring</div>
               </div>
-              <div onclick="selectTone('dark')" class="tone-card cursor-pointer p-3.5 rounded-xl border border-gray-800 bg-black/40 text-center transition">
-                <div class="text-xl mb-1">🤫</div>
-                <div class="font-bold text-xs text-white">Dark Mystery</div>
-              </div>
-              <div onclick="selectTone('cinematic')" class="tone-card cursor-pointer p-3.5 rounded-xl border border-gray-800 bg-black/40 text-center transition">
-                <div class="text-xl mb-1">🎬</div>
-                <div class="font-bold text-xs text-white">Cinematic</div>
-              </div>
-              <div onclick="selectTone('chill')" class="tone-card cursor-pointer p-3.5 rounded-xl border border-gray-800 bg-black/40 text-center transition">
-                <div class="text-xl mb-1">💡</div>
-                <div class="font-bold text-xs text-white">Inspiring</div>
-              </div>
+              <input type="hidden" id="input-tone" value="energetic" />
             </div>
-            <input type="hidden" id="input-tone" value="energetic" />
-          </div>
 
-          <!-- QUESTION 3: VOICEOVER NARRATOR -->
-          <div class="glass-panel p-6 rounded-2xl space-y-4">
-            <div class="flex items-center justify-between">
+            <!-- Q3: Voice -->
+            <div class="glass-panel p-6 rounded-2xl space-y-4">
               <label class="text-base font-bold text-white flex items-center gap-2">
                 <span class="w-6 h-6 rounded-full bg-purple-600 text-white text-xs flex items-center justify-center font-bold">3</span>
-                Choose your AI Voiceover Narrator
+                Choose AI Voiceover Narrator
               </label>
-              <span class="text-xs text-green-400 font-semibold"><i class="fa-solid fa-circle-check"></i> Free Neural HD</span>
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div onclick="selectVoice('christopher')" class="voice-card active cursor-pointer p-3.5 rounded-xl border border-purple-500 bg-purple-950/30 flex items-center gap-3">
+                  <i class="fa-solid fa-microphone text-purple-400"></i>
+                  <div>
+                    <div class="font-bold text-xs text-white">Christopher</div>
+                    <div class="text-[10px] text-gray-400">Deep & Authoritative (US)</div>
+                  </div>
+                </div>
+                <div onclick="selectVoice('guy')" class="voice-card cursor-pointer p-3.5 rounded-xl border border-gray-800 bg-black/40 flex items-center gap-3">
+                  <i class="fa-solid fa-microphone text-gray-400"></i>
+                  <div>
+                    <div class="font-bold text-xs text-white">Guy</div>
+                    <div class="text-[10px] text-gray-400">Viral & Energetic (US)</div>
+                  </div>
+                </div>
+                <div onclick="selectVoice('jenny')" class="voice-card cursor-pointer p-3.5 rounded-xl border border-gray-800 bg-black/40 flex items-center gap-3">
+                  <i class="fa-solid fa-microphone text-gray-400"></i>
+                  <div>
+                    <div class="font-bold text-xs text-white">Jenny</div>
+                    <div class="text-[10px] text-gray-400">Engaging & Friendly (US)</div>
+                  </div>
+                </div>
+              </div>
+              <input type="hidden" id="input-voice" value="christopher" />
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3" id="voice-selector">
-              <div onclick="selectVoice('christopher')" class="voice-card active cursor-pointer p-3.5 rounded-xl border border-purple-500 bg-purple-950/30 transition flex items-center gap-3">
-                <div class="w-9 h-9 rounded-full bg-purple-600/30 flex items-center justify-center text-purple-300 font-bold text-sm">
-                  <i class="fa-solid fa-microphone"></i>
-                </div>
-                <div>
-                  <div class="font-bold text-xs text-white">Christopher</div>
-                  <div class="text-[10px] text-gray-400">Deep & Authoritative (US)</div>
-                </div>
+            <!-- Action Bar -->
+            <div class="glass-panel p-6 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div class="flex items-center gap-4 text-xs font-semibold">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="publish_mode" value="download" checked class="accent-purple-500" />
+                  <span>💾 Save & Download MP4</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="publish_mode" value="youtube" class="accent-purple-500" />
+                  <span>🚀 Direct YouTube Post</span>
+                </label>
               </div>
-              <div onclick="selectVoice('guy')" class="voice-card cursor-pointer p-3.5 rounded-xl border border-gray-800 bg-black/40 transition flex items-center gap-3">
-                <div class="w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center text-gray-300 font-bold text-sm">
-                  <i class="fa-solid fa-microphone"></i>
-                </div>
-                <div>
-                  <div class="font-bold text-xs text-white">Guy</div>
-                  <div class="text-[10px] text-gray-400">Viral & Energetic (US)</div>
-                </div>
-              </div>
-              <div onclick="selectVoice('jenny')" class="voice-card cursor-pointer p-3.5 rounded-xl border border-gray-800 bg-black/40 transition flex items-center gap-3">
-                <div class="w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center text-gray-300 font-bold text-sm">
-                  <i class="fa-solid fa-microphone"></i>
-                </div>
-                <div>
-                  <div class="font-bold text-xs text-white">Jenny</div>
-                  <div class="text-[10px] text-gray-400">Engaging & Friendly (US)</div>
-                </div>
-              </div>
+
+              <button onclick="startVideoGeneration()" id="btn-generate" class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white font-extrabold text-sm glow-btn transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <span>GENERATE WITH GOOGLE VEO</span>
+              </button>
             </div>
-            <input type="hidden" id="input-voice" value="christopher" />
+
           </div>
 
-          <!-- ACTION BAR -->
-          <div class="glass-panel p-6 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div class="flex items-center gap-4">
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input type="radio" name="publish_mode" value="download" checked class="accent-purple-500 w-4 h-4" />
-                <span class="text-xs font-semibold text-gray-200">💾 Save & Download MP4</span>
-              </label>
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input type="radio" name="publish_mode" value="youtube" class="accent-purple-500 w-4 h-4" />
-                <span class="text-xs font-semibold text-gray-200">🚀 Direct YouTube Post</span>
-              </label>
-            </div>
+          <!-- Preview Frame -->
+          <div>
+            <div class="glass-panel p-6 rounded-2xl space-y-4">
+              <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-brands fa-youtube text-red-500"></i> 1080x1920 Short Preview
+              </h3>
 
-            <button onclick="startVideoGeneration()" id="btn-generate" class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white font-extrabold text-sm tracking-wide glow-btn transition flex items-center justify-center gap-2">
-              <i class="fa-solid fa-wand-magic-sparkles"></i>
-              <span>GENERATE WITH GOOGLE VEO</span>
+              <div class="relative w-full aspect-[9/16] bg-black rounded-2xl overflow-hidden border-2 border-gray-800 shadow-2xl flex flex-col justify-between p-4">
+                <div class="absolute inset-0 bg-gradient-to-b from-blue-950/40 via-purple-950/40 to-black flex flex-col items-center justify-center text-center p-6">
+                  <i class="fa-solid fa-video text-3xl text-blue-400 mb-2 animate-pulse"></i>
+                  <p class="text-xs font-bold text-white">Google Veo AI Engine</p>
+                  <p class="text-[10px] text-gray-400 mt-1">Generative 8K Scene & Dynamic Captions</p>
+                </div>
+
+                <div class="relative z-10 text-center my-auto px-2">
+                  <div class="inline-block bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-white/10 shadow-lg">
+                    <span class="text-yellow-400 font-extrabold text-sm uppercase">3 PSYCHOLOGY TRICKS</span>
+                  </div>
+                </div>
+
+                <div class="relative z-10 space-y-1 text-xs">
+                  <div class="font-bold text-white">@ApexTech</div>
+                  <p class="text-[10px] text-gray-300 line-clamp-1">The shocking truth you experience daily...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================================= -->
+      <!-- VIEW 4: AI VIDEO IDEAS & VIRAL SCANNER                    -->
+      <!-- ========================================================= -->
+      <div id="view-ideas" class="hidden space-y-6">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h2 class="text-2xl font-extrabold text-white flex items-center gap-2">
+              <i class="fa-solid fa-lightbulb text-yellow-400"></i> AI Video Ideas & Viral Opportunity Scanner
+            </h2>
+            <p class="text-xs text-gray-400">Continuously scans high-RPM niches and scores ideas based on viral potential and search volume.</p>
+          </div>
+          <button onclick="fetchViralIdeas()" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition">
+            <i class="fa-solid fa-rotate mr-1"></i> Scan New Ideas
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="ideas-grid">
+          <!-- Ideas loaded dynamically -->
+        </div>
+      </div>
+
+      <!-- ========================================================= -->
+      <!-- VIEW 5: AI SCRIPT STUDIO (SHORTS & LONG-FORM)             -->
+      <!-- ========================================================= -->
+      <div id="view-scripts" class="hidden space-y-6">
+        <div class="flex justify-between items-center">
+          <div>
+            <h2 class="text-2xl font-extrabold text-white flex items-center gap-2">
+              <i class="fa-solid fa-scroll text-purple-400"></i> AI Script Studio
+            </h2>
+            <p class="text-xs text-gray-400">Generate full-length retention-engineered documentary scripts or 30-second viral Shorts scripts.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="glass-panel p-6 rounded-2xl space-y-4">
+            <h3 class="font-bold text-sm text-white">Script Configuration</h3>
+            <div>
+              <label class="text-xs text-gray-400">Topic / Angle</label>
+              <input type="text" id="script-input-topic" value="The Rise of Autonomous AI Agents in 2026" class="w-full mt-1 bg-black/50 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white" />
+            </div>
+            <div>
+              <label class="text-xs text-gray-400">Format</label>
+              <select id="script-input-format" class="w-full mt-1 bg-black/50 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white">
+                <option value="shorts">Vertical Short (30-60s)</option>
+                <option value="longform">Full Documentary (8-12 mins)</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs text-gray-400">Storytelling Tone</label>
+              <select id="script-input-tone" class="w-full mt-1 bg-black/50 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white">
+                <option value="energetic">Fast Paced / Viral High Retention</option>
+                <option value="dark">Mysterious & Investigative</option>
+                <option value="cinematic">Cinematic Documentary</option>
+              </select>
+            </div>
+            <button onclick="generateFullScriptAction()" class="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition">
+              ✨ Generate Retention Script
             </button>
           </div>
 
+          <div class="lg:col-span-2 glass-panel p-6 rounded-2xl space-y-4">
+            <div class="flex justify-between items-center">
+              <h3 class="font-bold text-sm text-white" id="script-editor-title">Generated Script & Storyboard</h3>
+              <button onclick="sendScriptToCreator()" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition">
+                🚀 Send to Video Generator
+              </button>
+            </div>
+            <textarea id="script-editor-body" rows="14" class="w-full bg-black/60 border border-gray-800 rounded-xl p-4 text-xs text-gray-200 font-mono leading-relaxed focus:outline-none focus:border-purple-500"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================================= -->
+      <!-- VIEW 6: NICHE & COMPETITOR RESEARCH                       -->
+      <!-- ========================================================= -->
+      <div id="view-research" class="hidden space-y-6">
+        <div>
+          <h2 class="text-2xl font-extrabold text-white flex items-center gap-2">
+            <i class="fa-solid fa-magnifying-glass-chart text-blue-400"></i> Niche Discovery & RPM Intelligence
+          </h2>
+          <p class="text-xs text-gray-400">Analyze high-paying YouTube niches, competitor saturation, search volume, and content gaps.</p>
         </div>
 
-        <!-- Right Column Preview -->
-        <div class="space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="niches-table-grid">
+          <!-- Niches injected dynamically -->
+        </div>
+      </div>
+
+      <!-- ========================================================= -->
+      <!-- VIEW 7: YOUTUBE SEO OPTIMIZER                             -->
+      <!-- ========================================================= -->
+      <div id="view-seo" class="hidden space-y-6">
+        <div>
+          <h2 class="text-2xl font-extrabold text-white flex items-center gap-2">
+            <i class="fa-solid fa-tags text-indigo-400"></i> YouTube SEO & Tag Ranker
+          </h2>
+          <p class="text-xs text-gray-400">Optimize video titles, compute SEO scores /100, generate high-ranking tags, and format descriptions.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div class="glass-panel p-6 rounded-2xl space-y-4">
-            <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider flex items-center gap-2">
-              <i class="fa-brands fa-youtube text-red-500"></i> 1080x1920 Short Preview
-            </h3>
+            <h3 class="font-bold text-sm text-white">Analyze Video Metadata</h3>
+            <div>
+              <label class="text-xs text-gray-400">Draft Title</label>
+              <input type="text" id="seo-input-title" value="3 Dark Psychology Tricks You Experience Everyday" class="w-full mt-1 bg-black/50 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white" />
+            </div>
+            <div>
+              <label class="text-xs text-gray-400">Target Keyword / Topic</label>
+              <input type="text" id="seo-input-topic" value="Dark Psychology" class="w-full mt-1 bg-black/50 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white" />
+            </div>
+            <button onclick="analyzeSEOAction()" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition">
+              🎯 Analyze & Optimize SEO
+            </button>
+          </div>
 
-            <div class="relative w-full aspect-[9/16] bg-black rounded-2xl overflow-hidden border-2 border-gray-800 shadow-2xl flex flex-col justify-between p-4">
-              <div id="preview-placeholder" class="absolute inset-0 bg-gradient-to-b from-blue-950/40 via-purple-950/40 to-black flex flex-col items-center justify-center text-center p-6">
-                <div class="w-16 h-16 rounded-full bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 mb-3 animate-pulse">
-                  <i class="fa-solid fa-video text-2xl"></i>
+          <div class="lg:col-span-2 glass-panel p-6 rounded-2xl space-y-4" id="seo-results-box">
+            <div class="flex items-center justify-between">
+              <h3 class="font-bold text-sm text-white">SEO Score & Tag Recommendations</h3>
+              <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-950 text-green-400 border border-green-800">SEO Score: 98/100</span>
+            </div>
+            <div id="seo-output-content" class="space-y-4 text-xs text-gray-300">
+              <!-- Dynamically filled -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================================= -->
+      <!-- VIEW 8: THUMBNAIL STUDIO & A/B TESTER                     -->
+      <!-- ========================================================= -->
+      <div id="view-thumbnails" class="hidden space-y-6">
+        <div>
+          <h2 class="text-2xl font-extrabold text-white flex items-center gap-2">
+            <i class="fa-solid fa-image text-orange-400"></i> AI Thumbnail Studio & A/B Tester
+          </h2>
+          <p class="text-xs text-gray-400">Generate 3 high-contrast A/B test thumbnail concepts with CTR predictions and visual prompts.</p>
+        </div>
+
+        <div class="glass-panel p-6 rounded-2xl space-y-4">
+          <div class="flex gap-4">
+            <input type="text" id="thumb-input-topic" value="The Shocking Truth About Artificial General Intelligence" class="flex-1 bg-black/50 border border-gray-700 rounded-xl px-4 py-3 text-xs text-white" />
+            <button onclick="generateThumbnailsAction()" class="px-6 py-3 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs transition">
+              Generate 3 A/B Variants
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="thumbnails-grid">
+          <!-- Thumbnail variants injected dynamically -->
+        </div>
+      </div>
+
+      <!-- ========================================================= -->
+      <!-- VIEW 9: 1-CLICK CONTENT REPURPOSER                        -->
+      <!-- ========================================================= -->
+      <div id="view-repurposer" class="hidden space-y-6">
+        <div>
+          <h2 class="text-2xl font-extrabold text-white flex items-center gap-2">
+            <i class="fa-solid fa-arrows-spin text-teal-400"></i> 1-Click Content Repurposer
+          </h2>
+          <p class="text-xs text-gray-400">Turn 1 long-form YouTube video or transcript into 3 Shorts, a 7-part X Thread, LinkedIn post, and Blog article.</p>
+        </div>
+
+        <div class="glass-panel p-6 rounded-2xl space-y-4">
+          <div class="flex flex-col sm:flex-row gap-4">
+            <input type="text" id="repurpose-input-title" value="The Secret Psychology of High Performers" placeholder="Enter video title or topic" class="flex-1 bg-black/50 border border-gray-700 rounded-xl px-4 py-3 text-xs text-white" />
+            <button onclick="runRepurposerAction()" class="px-6 py-3 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs transition">
+              ♻️ Repurpose to 5 Platforms
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="repurposed-output-grid">
+          <!-- Repurposed formats injected dynamically -->
+        </div>
+      </div>
+
+      <!-- ========================================================= -->
+      <!-- VIEW 10: CONTENT CALENDAR & SCHEDULER                     -->
+      <!-- ========================================================= -->
+      <div id="view-calendar" class="hidden space-y-6">
+        <div class="flex justify-between items-center">
+          <div>
+            <h2 class="text-2xl font-extrabold text-white flex items-center gap-2">
+              <i class="fa-solid fa-calendar-days text-rose-400"></i> Visual Content Calendar
+            </h2>
+            <p class="text-xs text-gray-400">Drag-and-drop posting schedule for automated YouTube publishing.</p>
+          </div>
+        </div>
+
+        <div class="glass-panel p-6 rounded-2xl space-y-4" id="calendar-events-container">
+          <!-- Events loaded dynamically -->
+        </div>
+      </div>
+
+      <!-- ========================================================= -->
+      <!-- VIEW 11: MONETIZATION & SPONSORSHIPS                      -->
+      <!-- ========================================================= -->
+      <div id="view-monetization" class="hidden space-y-6">
+        <div>
+          <h2 class="text-2xl font-extrabold text-white flex items-center gap-2">
+            <i class="fa-solid fa-dollar-sign text-emerald-400"></i> Monetization Tracker & Sponsorship CRM
+          </h2>
+          <p class="text-xs text-gray-400">Track AdSense earnings, brand outreach deals, and calculate dynamic video sponsorship pricing.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="monetization-stats-grid">
+          <!-- Stats loaded dynamically -->
+        </div>
+
+        <div class="glass-panel p-6 rounded-2xl space-y-4">
+          <h3 class="text-sm font-bold text-white">Active Sponsorship Pipeline</h3>
+          <div id="sponsorships-table-container" class="space-y-2 text-xs"></div>
+        </div>
+      </div>
+
+      <!-- ========================================================= -->
+      <!-- VIEW 12: VIDEO LIBRARY                                    -->
+      <!-- ========================================================= -->
+      <div id="view-gallery" class="hidden space-y-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-2xl font-extrabold text-white flex items-center gap-2">
+              <i class="fa-solid fa-film text-purple-400"></i> Video Library
+            </h2>
+            <p class="text-xs text-gray-400">Preview, download, or post your generated Shorts.</p>
+          </div>
+          <button onclick="fetchVideoList()" class="px-4 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-xs font-bold text-gray-200 transition">
+            <i class="fa-solid fa-rotate-right mr-1"></i> Refresh
+          </button>
+        </div>
+
+        <div id="video-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+      </div>
+
+      <!-- ========================================================= -->
+      <!-- VIEW 13: TEAM WORKSPACE                                   -->
+      <!-- ========================================================= -->
+      <div id="view-team" class="hidden space-y-6">
+        <div>
+          <h2 class="text-2xl font-extrabold text-white flex items-center gap-2">
+            <i class="fa-solid fa-users text-blue-300"></i> Team Workspace & Freelancer Hub
+          </h2>
+          <p class="text-xs text-gray-400">Manage member roles, permissions, channel access, and hire verified thumbnail designers or researchers.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="glass-panel p-6 rounded-2xl space-y-4">
+            <h3 class="text-sm font-bold text-white">Workspace Members</h3>
+            <div class="space-y-3 text-xs">
+              <div class="flex items-center justify-between p-3 rounded-xl bg-black/40 border border-gray-800">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center font-bold text-white">CY</div>
+                  <div>
+                    <div class="font-bold text-white">Cyril (You)</div>
+                    <div class="text-[10px] text-gray-400">Owner / SuperAdmin</div>
+                  </div>
                 </div>
-                <p class="text-xs font-bold text-white">Google Veo AI Engine</p>
-                <p class="text-[11px] text-gray-400 mt-1">Photorealistic generative scenes + dynamic captions</p>
+                <span class="px-2 py-0.5 rounded bg-purple-950 text-purple-300 font-semibold text-[10px]">Full Access</span>
               </div>
-
-              <div class="relative z-10 flex justify-between items-center text-white/80 text-xs">
-                <span class="bg-black/60 px-2 py-0.5 rounded backdrop-blur text-[10px] font-bold text-blue-400">#VEO_AI</span>
-                <i class="fa-solid fa-ellipsis-vertical"></i>
-              </div>
-
-              <div class="relative z-10 text-center my-auto px-2">
-                <div class="inline-block bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-white/10 shadow-lg">
-                  <span class="text-yellow-400 font-extrabold text-sm uppercase tracking-wider">3 DARK PSYCHOLOGY TRICKS</span>
+              <div class="flex items-center justify-between p-3 rounded-xl bg-black/40 border border-gray-800">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white">AL</div>
+                  <div>
+                    <div class="font-bold text-white">Alex Morgan</div>
+                    <div class="text-[10px] text-gray-400">Script Editor</div>
+                  </div>
                 </div>
+                <span class="px-2 py-0.5 rounded bg-blue-950 text-blue-300 font-semibold text-[10px]">Editor</span>
               </div>
+            </div>
+          </div>
 
-              <div class="relative z-10 space-y-2">
-                <div class="flex items-center gap-2">
-                  <div class="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white">AI</div>
-                  <span class="text-xs font-bold text-white">@YourChannel</span>
+          <div class="glass-panel p-6 rounded-2xl space-y-4">
+            <h3 class="text-sm font-bold text-white">Freelancer Marketplace</h3>
+            <div class="space-y-3 text-xs">
+              <div class="p-3 rounded-xl bg-black/40 border border-gray-800 flex items-center justify-between">
+                <div>
+                  <div class="font-bold text-white">🎨 Pro Thumbnail Designer (14% CTR Avg)</div>
+                  <div class="text-[10px] text-gray-400">Verified • 4.9 ★ (120+ orders)</div>
                 </div>
-                <p class="text-[11px] text-gray-300 line-clamp-2">The shocking truth you experience every day... #shorts</p>
+                <button class="px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-white font-bold text-[10px]">Hire ($25)</button>
+              </div>
+              <div class="p-3 rounded-xl bg-black/40 border border-gray-800 flex items-center justify-between">
+                <div>
+                  <div class="font-bold text-white">📝 Viral Hook & Script Polisher</div>
+                  <div class="text-[10px] text-gray-400">Verified • 5.0 ★ (85+ orders)</div>
+                </div>
+                <button class="px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-white font-bold text-[10px]">Hire ($30)</button>
               </div>
             </div>
           </div>
         </div>
-
-      </div>
-    </div>
-
-    <!-- TAB 2: VIDEO GALLERY -->
-    <div id="tab-gallery" class="hidden space-y-6">
-      <div class="flex items-center justify-between">
-        <div>
-          <h2 class="text-2xl font-extrabold text-white">Generated Video Library</h2>
-          <p class="text-sm text-gray-400">Preview, download, or post your generated Shorts</p>
-        </div>
-        <button onclick="fetchVideoList()" class="px-4 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-xs font-bold text-gray-200 transition">
-          <i class="fa-solid fa-rotate-right mr-1"></i> Refresh
-        </button>
       </div>
 
-      <div id="video-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
-    </div>
+      <!-- ========================================================= -->
+      <!-- VIEW 14: SETTINGS & KEYS                                  -->
+      <!-- ========================================================= -->
+      <div id="view-settings" class="hidden max-w-2xl mx-auto space-y-6">
+        <div class="glass-panel p-6 rounded-2xl space-y-6">
+          <h2 class="text-xl font-bold text-white">AI Engine & API Keys</h2>
+          
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-gray-300 mb-1">
+                Google Gemini / Veo API Key <span class="text-blue-400">(Recommended for Google Veo AI Video)</span>
+              </label>
+              <input type="password" id="setting-veo" placeholder="Paste Google AI Studio / Gemini API key" class="w-full bg-black/50 border border-gray-700 focus:border-blue-500 rounded-xl px-4 py-2.5 text-white text-xs focus:outline-none" />
+              <span class="text-[10px] text-gray-500">Get your key from aistudio.google.com</span>
+            </div>
 
-    <!-- TAB 3: SETTINGS -->
-    <div id="tab-settings" class="hidden max-w-2xl mx-auto space-y-6">
-      <div class="glass-panel p-6 rounded-2xl space-y-6">
-        <h2 class="text-xl font-bold text-white">AI Engine & API Keys</h2>
-        
-        <div class="space-y-4">
-          <div>
-            <label class="block text-xs font-bold text-gray-300 mb-1">
-              Google Gemini / Veo API Key <span class="text-blue-400">(Recommended for Google Veo AI Video)</span>
-            </label>
-            <input type="password" id="setting-veo" placeholder="Paste Google AI Studio / Gemini API key" class="w-full bg-black/50 border border-gray-700 focus:border-blue-500 rounded-xl px-4 py-2.5 text-white text-xs focus:outline-none" />
-            <span class="text-[10px] text-gray-500">Get your key from aistudio.google.com</span>
+            <div>
+              <label class="block text-xs font-bold text-gray-300 mb-1">
+                Pexels API Key <span class="text-gray-500">(Optional for stock b-roll)</span>
+              </label>
+              <input type="text" id="setting-pexels" placeholder="Paste free Pexels API key" class="w-full bg-black/50 border border-gray-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-white text-xs focus:outline-none" />
+            </div>
+
+            <button onclick="saveSettings()" class="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition">
+              Save Settings
+            </button>
           </div>
-
-          <div>
-            <label class="block text-xs font-bold text-gray-300 mb-1">
-              Pexels API Key <span class="text-gray-500">(Optional for stock b-roll)</span>
-            </label>
-            <input type="text" id="setting-pexels" placeholder="Paste free Pexels API key" class="w-full bg-black/50 border border-gray-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-white text-xs focus:outline-none" />
-          </div>
-
-          <button onclick="saveSettings()" class="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition">
-            Save Settings
-          </button>
         </div>
       </div>
-    </div>
 
-  </main>
+    </main>
+  </div>
 
   <!-- LIVE GENERATION PROGRESS MODAL -->
   <div id="generation-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
@@ -366,7 +872,7 @@
           <a id="modal-download-btn" href="#" download class="flex-1 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition flex items-center justify-center gap-2">
             <i class="fa-solid fa-download"></i> Download .MP4
           </a>
-          <button onclick="closeModal(); switchTab('gallery');" class="px-4 py-3 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-bold text-xs transition">
+          <button onclick="closeModal(); switchView('gallery');" class="px-4 py-3 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-bold text-xs transition">
             Close
           </button>
         </div>

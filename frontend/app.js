@@ -1,47 +1,595 @@
-// AutoShorts AI — Frontend Logic with Google Veo & Direct Cloud Sync
+// AutoShorts AI — Master Multi-Module SaaS Application Logic
 
-function switchTab(tabId) {
-  document.getElementById('tab-wizard').classList.add('hidden');
-  document.getElementById('tab-gallery').classList.add('hidden');
-  document.getElementById('tab-settings').classList.add('hidden');
+const VIEWS = [
+  'dashboard', 'agents', 'creator', 'ideas', 'scripts', 
+  'research', 'seo', 'thumbnails', 'repurposer', 
+  'calendar', 'monetization', 'gallery', 'team', 'settings'
+];
 
-  document.getElementById('tab-btn-wizard').className = "px-3.5 py-1.5 rounded-lg text-sm font-semibold transition text-gray-400 hover:text-white hover:bg-gray-800/60";
-  document.getElementById('tab-btn-gallery').className = "px-3.5 py-1.5 rounded-lg text-sm font-semibold transition text-gray-400 hover:text-white hover:bg-gray-800/60";
-  document.getElementById('tab-btn-settings').className = "px-3.5 py-1.5 rounded-lg text-sm font-semibold transition text-gray-400 hover:text-white hover:bg-gray-800/60";
+let activeChannel = "Apex Tech";
 
-  document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-  document.getElementById(`tab-btn-${tabId}`).className = "px-3.5 py-1.5 rounded-lg text-sm font-semibold transition bg-purple-600/20 text-purple-300 border border-purple-500/30";
+// -------------------------------------------------------------
+// 1. VIEW SWITCHING & CHANNEL MANAGEMENT
+// -------------------------------------------------------------
+function switchView(viewId) {
+  VIEWS.forEach(v => {
+    const el = document.getElementById(`view-${v}`);
+    const navEl = document.getElementById(`nav-${v}`);
+    if (el) el.classList.add('hidden');
+    if (navEl) {
+      navEl.className = "nav-link w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-semibold transition text-gray-400 hover:text-white hover:bg-gray-800/50";
+    }
+  });
 
-  if (tabId === 'gallery') {
-    fetchVideoList();
+  const targetView = document.getElementById(`view-${viewId}`);
+  const targetNav = document.getElementById(`nav-${viewId}`);
+
+  if (targetView) targetView.classList.remove('hidden');
+  if (targetNav) {
+    targetNav.className = "nav-link w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-semibold transition bg-purple-600/20 text-purple-300 border border-purple-500/30";
+  }
+
+  // Auto load view data
+  if (viewId === 'dashboard') loadDashboardStats();
+  if (viewId === 'agents') loadAgentCards();
+  if (viewId === 'ideas') fetchViralIdeas();
+  if (viewId === 'research') loadNiches();
+  if (viewId === 'calendar') loadCalendarEvents();
+  if (viewId === 'monetization') loadMonetizationStats();
+  if (viewId === 'gallery') fetchVideoList();
+}
+
+function changeChannel(channelName) {
+  activeChannel = channelName;
+  loadDashboardStats();
+}
+
+// -------------------------------------------------------------
+// 2. DASHBOARD & AI BRAIN LOADER
+// -------------------------------------------------------------
+async function loadDashboardStats() {
+  try {
+    const res = await fetch(`/api/dashboard/stats?channel=${encodeURIComponent(activeChannel)}`);
+    if (!res.ok) return;
+    const data = await res.json();
+
+    document.getElementById('stat-subs').innerText = data.subscribers;
+    document.getElementById('stat-subs-change').innerText = data.subs_change;
+    document.getElementById('stat-views').innerText = data.views_28d;
+    document.getElementById('stat-views-change').innerText = data.views_change;
+    document.getElementById('stat-watch').innerText = data.watch_time_hrs + " hrs";
+    document.getElementById('stat-rev').innerText = data.est_revenue;
+    document.getElementById('stat-rev-change').innerText = data.revenue_change;
+
+    // Render Brain Recommendations
+    const container = document.getElementById('brain-feed-container');
+    if (container && data.ai_brain_recommendations) {
+      container.innerHTML = data.ai_brain_recommendations.map(rec => `
+        <div class="p-4 rounded-xl bg-purple-950/20 border border-purple-500/30 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-purple-600/30 text-purple-300 uppercase">${rec.type}</span>
+            <span class="text-[11px] text-yellow-400 font-bold">${rec.urgency}</span>
+          </div>
+          <div>
+            <h4 class="font-bold text-sm text-white">${rec.title}</h4>
+            <p class="text-xs text-gray-300 mt-1">${rec.detail}</p>
+          </div>
+          <button onclick="setTopicAndCreate('${rec.action_topic}')" class="w-full py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition">
+            ⚡ 1-Click Generate Action
+          </button>
+        </div>
+      `).join('');
+    }
+  } catch (e) {
+    console.error("Dashboard load error:", e);
   }
 }
 
+function setTopicAndCreate(topic) {
+  setTopic(topic);
+  switchView('creator');
+}
+
+// -------------------------------------------------------------
+// 3. MULTI-AGENT PIPELINE
+// -------------------------------------------------------------
+const AGENTS = [
+  { id: "research", name: "🕵️ Research Agent", role: "Trend & Keyword Discovery", status: "Active" },
+  { id: "script", name: "📝 Script Agent", role: "Retention Hooks & Storyboards", status: "Active" },
+  { id: "voice", name: "🎙️ Voice Agent", role: "Neural Speech & Subtitle Alignment", status: "Active" },
+  { id: "production", name: "🎬 Production Agent", role: "Google Veo 9:16 Video Rendering", status: "Active" },
+  { id: "thumbnail", name: "🎨 Thumbnail Agent", role: "CTR A/B Testing & Concepts", status: "Active" },
+  { id: "seo", name: "🏷️ SEO Agent", role: "Title Ranker & Keyword Optimization", status: "Active" },
+  { id: "publishing", name: "🚀 Publishing Agent", role: "YouTube API Distribution", status: "Active" },
+  { id: "analytics", name: "📊 Analytics Agent", role: "Retention Diagnostics & Prescriptions", status: "Active" }
+];
+
+function loadAgentCards() {
+  const grid = document.getElementById('agent-cards-grid');
+  if (!grid) return;
+  grid.innerHTML = AGENTS.map(a => `
+    <div class="glass-panel p-4 rounded-2xl space-y-2 border border-gray-800/80 hover:border-cyan-500/40 transition">
+      <div class="flex items-center justify-between">
+        <span class="font-bold text-xs text-white">${a.name}</span>
+        <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+      </div>
+      <p class="text-[11px] text-gray-400 leading-snug">${a.role}</p>
+      <div class="pt-2 text-[10px] text-cyan-300 font-semibold flex items-center gap-1">
+        <i class="fa-solid fa-circle-check text-green-400"></i> Standing By
+      </div>
+    </div>
+  `).join('');
+}
+
+async function triggerAutonomousPipeline() {
+  const btn = document.getElementById('btn-run-agents');
+  const consoleEl = document.getElementById('agent-output-console');
+  btn.disabled = true;
+  btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Running 8 Agents...`;
+
+  consoleEl.innerHTML = `<p class="text-cyan-400 font-bold">> Initializing Autonomous 8-Agent Pipeline...</p>`;
+
+  try {
+    const res = await fetch('/api/agents/run-pipeline', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        topic: "The Shocking Truth About Artificial General Intelligence",
+        niche: "AI Tech",
+        voice: "christopher",
+        channel: activeChannel
+      })
+    });
+
+    const data = await res.json();
+    const agents = data.agents;
+
+    const agentSteps = [
+      { agent: agents.research.agent, text: `Identified breakout query '${agents.research.primary_keyword}' with ${agents.research.search_volume}. Viral Score: ${agents.research.viral_opportunity_score}/100.` },
+      { agent: agents.script.agent, text: `Crafted retention hook (${agents.script.estimated_duration}, ${agents.script.word_count} words). Retention rating: ${agents.script.retention_rating}.` },
+      { agent: agents.voice.agent, text: `Synthesized 48kHz audio track (${agents.voice.selected_voice}) at ${agents.voice.pacing}.` },
+      { agent: agents.production.agent, text: `Rendered 1080x1920 Short with Google Veo prompt: '${agents.production.visual_prompt.slice(0, 50)}...'` },
+      { agent: agents.thumbnail.agent, text: `Created 3 A/B test variations. Top pick: '${agents.thumbnail.variant_c.headline}' with ${agents.thumbnail.variant_c.predicted_ctr} predicted CTR.` },
+      { agent: agents.seo.agent, text: `Optimized title & ranked 6 high-volume hashtags. SEO Score: ${agents.seo.seo_score}/100.` },
+      { agent: agents.publishing.agent, text: `Scheduled for ${agents.publishing.target_channel} at ${agents.publishing.scheduled_time}.` },
+      { agent: agents.analytics.agent, text: `Prescription: ${agents.analytics.prescription}` }
+    ];
+
+    let delay = 0;
+    agentSteps.forEach((step, idx) => {
+      setTimeout(() => {
+        consoleEl.innerHTML += `
+          <div class="p-2.5 rounded-lg bg-gray-950/80 border border-gray-800/80 space-y-1">
+            <div class="font-bold text-cyan-300 text-xs">${step.agent}</div>
+            <div class="text-gray-200 text-xs">${step.text}</div>
+          </div>
+        `;
+        consoleEl.scrollTop = consoleEl.scrollHeight;
+
+        if (idx === agentSteps.length - 1) {
+          btn.disabled = false;
+          btn.innerHTML = `<i class="fa-solid fa-check text-green-400"></i> Pipeline Completed!`;
+        }
+      }, delay);
+      delay += 800;
+    });
+
+  } catch (e) {
+    consoleEl.innerHTML += `<p class="text-red-400">> Pipeline Error: ${e.message}</p>`;
+    btn.disabled = false;
+    btn.innerHTML = `<i class="fa-solid fa-play"></i> Run 8-Agent Pipeline`;
+  }
+}
+
+// -------------------------------------------------------------
+// 4. NICHE & COMPETITOR RESEARCH
+// -------------------------------------------------------------
+async function loadNiches() {
+  try {
+    const res = await fetch('/api/research/niches');
+    if (!res.ok) return;
+    const data = await res.json();
+    const grid = document.getElementById('niches-table-grid');
+    if (!grid) return;
+
+    grid.innerHTML = data.niches.map(n => `
+      <div class="glass-panel p-5 rounded-2xl space-y-4 border border-gray-800 hover:border-blue-500/40 transition">
+        <div class="flex items-center justify-between">
+          <h3 class="font-bold text-sm text-white">${n.name}</h3>
+          <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-green-950 text-green-400 border border-green-800">${n.rpm_range} RPM</span>
+        </div>
+        <p class="text-xs text-gray-300">${n.description}</p>
+        
+        <div class="space-y-1.5 pt-2 border-t border-gray-800 text-[11px]">
+          <div class="flex justify-between text-gray-400">
+            <span>Viral Potential:</span>
+            <span class="text-purple-300 font-bold">${n.viral_potential}/100</span>
+          </div>
+          <div class="flex justify-between text-gray-400">
+            <span>Search Volume:</span>
+            <span class="text-blue-300 font-bold">${n.search_volume}</span>
+          </div>
+          <div class="flex justify-between text-gray-400">
+            <span>Competition:</span>
+            <span class="text-yellow-300 font-bold">${n.competition}</span>
+          </div>
+        </div>
+
+        <div class="pt-2">
+          <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Top Content Gap:</div>
+          <div class="text-xs text-cyan-300 font-medium p-2 rounded bg-black/40 border border-gray-800">
+            "${n.content_gaps[0]}"
+          </div>
+        </div>
+
+        <button onclick="setTopicAndCreate('${n.content_gaps[0]}')" class="w-full py-2 rounded-xl bg-blue-600/30 hover:bg-blue-600 text-blue-200 hover:text-white font-bold text-xs transition">
+          ⚡ 1-Click Create in this Niche
+        </button>
+      </div>
+    `).join('');
+  } catch (e) {
+    console.error("Niches error:", e);
+  }
+}
+
+// -------------------------------------------------------------
+// 5. AI VIDEO IDEAS & VIRAL SCANNER
+// -------------------------------------------------------------
+async function fetchViralIdeas() {
+  try {
+    const res = await fetch(`/api/ideas/generate?niche=${encodeURIComponent(activeChannel)}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    const grid = document.getElementById('ideas-grid');
+    if (!grid) return;
+
+    grid.innerHTML = data.ideas.map(idea => `
+      <div class="glass-panel p-5 rounded-2xl space-y-3 flex flex-col justify-between border border-gray-800 hover:border-yellow-500/40 transition">
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-yellow-950 text-yellow-300 border border-yellow-800">Viral Score: ${idea.viral_score}/100</span>
+            <span class="text-[10px] text-green-400 font-semibold">${idea.rpm_potential}</span>
+          </div>
+          <h4 class="font-bold text-sm text-white leading-snug">${idea.title}</h4>
+          <div class="text-[11px] text-gray-400">Angle: <span class="text-purple-300">${idea.angle}</span></div>
+          <div class="text-[11px] text-gray-400">Est. 30d Velocity: <span class="text-blue-300 font-bold">${idea.est_views} views</span></div>
+        </div>
+
+        <div class="flex gap-2 pt-3">
+          <button onclick="setTopicAndCreate('${idea.title}')" class="flex-1 py-2 rounded-lg bg-yellow-600/30 hover:bg-yellow-600 text-yellow-200 hover:text-white text-xs font-bold transition">
+            ⚡ Generate Short
+          </button>
+          <button onclick="openInScriptStudio('${idea.title}')" class="px-3 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-bold transition">
+            ✍️ Script
+          </button>
+        </div>
+      </div>
+    `).join('');
+  } catch (e) {
+    console.error("Ideas error:", e);
+  }
+}
+
+function openInScriptStudio(title) {
+  document.getElementById('script-input-topic').value = title;
+  switchView('scripts');
+  generateFullScriptAction();
+}
+
+// -------------------------------------------------------------
+// 6. SCRIPT STUDIO
+// -------------------------------------------------------------
+async function generateFullScriptAction() {
+  const topic = document.getElementById('script-input-topic').value;
+  const format = document.getElementById('script-input-format').value;
+  const tone = document.getElementById('script-input-tone').value;
+
+  document.getElementById('script-editor-body').value = "Generating retention-optimized script with chapter markers and visual cues...";
+
+  try {
+    const res = await fetch('/api/scripts/generate-full', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic, format_type: format, tone, style: "documentary" })
+    });
+
+    const data = await res.json();
+    document.getElementById('script-editor-title').innerText = `${data.title} (${data.format})`;
+
+    if (data.chapters) {
+      const fullDoc = data.chapters.map(c => `[${c.timestamp}] ${c.title}\n${c.content}\n`).join('\n');
+      document.getElementById('script-editor-body').value = fullDoc;
+    } else {
+      document.getElementById('script-editor-body').value = `HOOK (0-5s):\n${data.hook}\n\nBODY & STORY:\n${data.body}\n\nVISUAL PROMPT (Google Veo):\n${data.veo_prompt}`;
+    }
+  } catch (e) {
+    document.getElementById('script-editor-body').value = `Error generating script: ${e.message}`;
+  }
+}
+
+function sendScriptToCreator() {
+  const topic = document.getElementById('script-input-topic').value;
+  setTopic(topic);
+  switchView('creator');
+}
+
+// -------------------------------------------------------------
+// 7. YOUTUBE SEO OPTIMIZER
+// -------------------------------------------------------------
+async function analyzeSEOAction() {
+  const title = document.getElementById('seo-input-title').value;
+  const topic = document.getElementById('seo-input-topic').value;
+  const content = document.getElementById('seo-output-content');
+  content.innerHTML = `<p class="text-indigo-300 animate-pulse">Analyzing keyword density, search volume & competition...</p>`;
+
+  try {
+    const res = await fetch('/api/seo/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, topic, niche: activeChannel })
+    });
+
+    const data = await res.json();
+    content.innerHTML = `
+      <div class="p-3 rounded-xl bg-black/40 border border-gray-800 space-y-2">
+        <div class="font-bold text-white text-xs">High-Performing Title Alternatives:</div>
+        <ul class="list-disc list-inside text-indigo-300 space-y-1">
+          ${data.optimized_title_options.map(t => `<li>${t}</li>`).join('')}
+        </ul>
+      </div>
+
+      <div class="p-3 rounded-xl bg-black/40 border border-gray-800 space-y-2">
+        <div class="font-bold text-white text-xs">Ranked Tags & Keywords (${data.recommended_tags.length}):</div>
+        <div class="flex flex-wrap gap-1.5">
+          ${data.recommended_tags.map(tag => `<span class="px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800 text-[11px]">${tag}</span>`).join('')}
+        </div>
+      </div>
+
+      <div class="p-3 rounded-xl bg-black/40 border border-gray-800 space-y-2">
+        <div class="font-bold text-white text-xs">Optimized Description Template:</div>
+        <pre class="whitespace-pre-wrap font-mono text-[11px] text-gray-300 bg-black/60 p-2.5 rounded-lg border border-gray-800">${data.optimized_description}</pre>
+      </div>
+    `;
+  } catch (e) {
+    content.innerHTML = `<p class="text-red-400">Error: ${e.message}</p>`;
+  }
+}
+
+// -------------------------------------------------------------
+// 8. THUMBNAIL STUDIO & A/B TESTER
+// -------------------------------------------------------------
+async function generateThumbnailsAction() {
+  const topic = document.getElementById('thumb-input-topic').value;
+  const grid = document.getElementById('thumbnails-grid');
+  grid.innerHTML = `<div class="col-span-full py-12 text-center text-orange-400 animate-pulse">Generating 3 A/B test thumbnail concepts...</div>`;
+
+  try {
+    const res = await fetch('/api/thumbnails/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic, tone: "viral" })
+    });
+
+    const data = await res.json();
+    grid.innerHTML = data.variants.map(v => `
+      <div class="glass-panel p-5 rounded-2xl space-y-4 border border-gray-800 hover:border-orange-500/40 transition flex flex-col justify-between">
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-orange-950 text-orange-300">Variant ${v.variant}</span>
+            <span class="text-xs font-bold text-green-400">${v.predicted_ctr} Predicted CTR</span>
+          </div>
+
+          <!-- 16:9 Thumbnail Mockup -->
+          <div class="w-full aspect-video bg-black rounded-xl border border-gray-800 p-4 flex flex-col justify-between relative overflow-hidden shadow-lg">
+            <div class="absolute inset-0 bg-gradient-to-tr from-black via-gray-900 to-purple-950/60 opacity-90"></div>
+            <div class="relative z-10 text-[10px] text-orange-400 font-bold uppercase tracking-wider">${v.subtext}</div>
+            <div class="relative z-10 text-center">
+              <span class="font-extrabold text-base text-yellow-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] uppercase">${v.headline_text}</span>
+            </div>
+            <div class="relative z-10 flex justify-between text-[9px] text-gray-400 font-bold">
+              <span>0:45</span>
+              <span>HD 16:9</span>
+            </div>
+          </div>
+
+          <div class="text-xs font-bold text-white">${v.name}</div>
+          <p class="text-[11px] text-gray-400 leading-snug">${v.visual_prompt}</p>
+        </div>
+
+        <button onclick="setTopicAndCreate('${topic}')" class="w-full py-2 rounded-xl bg-orange-600/30 hover:bg-orange-600 text-orange-200 hover:text-white text-xs font-bold transition">
+          Use This Thumbnail Concept
+        </button>
+      </div>
+    `).join('');
+  } catch (e) {
+    grid.innerHTML = `<div class="text-red-400">Error: ${e.message}</div>`;
+  }
+}
+
+// -------------------------------------------------------------
+// 9. 1-CLICK CONTENT REPURPOSER
+// -------------------------------------------------------------
+async function runRepurposerAction() {
+  const title = document.getElementById('repurpose-input-title').value;
+  const grid = document.getElementById('repurposed-output-grid');
+  grid.innerHTML = `<div class="col-span-full py-12 text-center text-teal-400 animate-pulse">Repurposing content into 5 viral platform formats...</div>`;
+
+  try {
+    const res = await fetch('/api/repurpose', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title })
+    });
+
+    const data = await res.json();
+    grid.innerHTML = `
+      <!-- 1. Shorts / Reels Clips -->
+      <div class="glass-panel p-5 rounded-2xl space-y-3">
+        <h4 class="font-bold text-sm text-white flex items-center gap-2">
+          <i class="fa-brands fa-youtube text-red-500"></i> 3 Extracted Viral Shorts
+        </h4>
+        <div class="space-y-2 text-xs">
+          ${data.shorts_clips.map(c => `
+            <div class="p-3 rounded-xl bg-black/40 border border-gray-800 space-y-1">
+              <div class="flex justify-between font-bold text-white">
+                <span>${c.title}</span>
+                <span class="text-purple-400">${c.duration}</span>
+              </div>
+              <p class="text-gray-300 text-[11px]">${c.hook}</p>
+              <button onclick="setTopicAndCreate('${c.title}')" class="mt-1 px-2.5 py-1 rounded bg-purple-600/30 text-purple-200 text-[10px] font-bold hover:bg-purple-600 hover:text-white transition">⚡ Render Clip</button>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <!-- 2. X (Twitter) Thread -->
+      <div class="glass-panel p-5 rounded-2xl space-y-3">
+        <h4 class="font-bold text-sm text-white flex items-center gap-2">
+          <i class="fa-brands fa-x-twitter text-white"></i> Viral 7-Part X Thread
+        </h4>
+        <div class="p-3 rounded-xl bg-black/40 border border-gray-800 text-xs font-mono text-gray-300 max-h-64 overflow-y-auto space-y-2 whitespace-pre-wrap">
+          ${data.x_thread.join('\n\n')}
+        </div>
+      </div>
+
+      <!-- 3. LinkedIn Post -->
+      <div class="glass-panel p-5 rounded-2xl space-y-3">
+        <h4 class="font-bold text-sm text-white flex items-center gap-2">
+          <i class="fa-brands fa-linkedin text-blue-400"></i> High-Authority LinkedIn Post
+        </h4>
+        <div class="p-3 rounded-xl bg-black/40 border border-gray-800 text-xs text-gray-300 whitespace-pre-wrap leading-relaxed">
+          ${data.linkedin_post}
+        </div>
+      </div>
+
+      <!-- 4. SEO Blog Article -->
+      <div class="glass-panel p-5 rounded-2xl space-y-3">
+        <h4 class="font-bold text-sm text-white flex items-center gap-2">
+          <i class="fa-solid fa-newspaper text-emerald-400"></i> Medium / Blog Article (${data.blog_article.read_time})
+        </h4>
+        <div class="p-3 rounded-xl bg-black/40 border border-gray-800 text-xs text-gray-300 space-y-2">
+          <div class="font-bold text-white">${data.blog_article.title}</div>
+          <p class="text-gray-400 text-[11px]">${data.blog_article.meta_description}</p>
+        </div>
+      </div>
+    `;
+  } catch (e) {
+    grid.innerHTML = `<div class="text-red-400">Error: ${e.message}</div>`;
+  }
+}
+
+// -------------------------------------------------------------
+// 10. CONTENT CALENDAR
+// -------------------------------------------------------------
+async function loadCalendarEvents() {
+  try {
+    const res = await fetch('/api/calendar/events');
+    if (!res.ok) return;
+    const data = await res.json();
+    const container = document.getElementById('calendar-events-container');
+    if (!container) return;
+
+    container.innerHTML = `
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        ${data.events.map(ev => `
+          <div class="p-4 rounded-xl bg-black/40 border border-gray-800 space-y-2 hover:border-rose-500/40 transition">
+            <div class="flex items-center justify-between text-[10px]">
+              <span class="font-bold text-rose-400">${ev.date} • ${ev.time}</span>
+              <span class="px-2 py-0.5 rounded bg-gray-800 text-gray-300 font-bold">${ev.format}</span>
+            </div>
+            <div class="font-bold text-xs text-white line-clamp-2">${ev.title}</div>
+            <div class="text-[10px] text-gray-400">Target: <span class="text-purple-300">${ev.channel}</span></div>
+            <div class="pt-2 text-[10px] font-bold text-green-400 flex items-center gap-1">
+              <i class="fa-solid fa-circle text-[6px]"></i> ${ev.status}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  } catch (e) {
+    console.error("Calendar load error:", e);
+  }
+}
+
+// -------------------------------------------------------------
+// 11. MONETIZATION & SPONSORSHIPS
+// -------------------------------------------------------------
+async function loadMonetizationStats() {
+  try {
+    const res = await fetch('/api/monetization/stats');
+    if (!res.ok) return;
+    const data = await res.json();
+
+    const statsGrid = document.getElementById('monetization-stats-grid');
+    if (statsGrid) {
+      statsGrid.innerHTML = `
+        <div class="glass-panel p-5 rounded-2xl space-y-2">
+          <div class="text-xs text-gray-400">Total Monthly Revenue</div>
+          <div class="text-2xl font-extrabold text-emerald-400">${data.monthly_totals.total_earnings}</div>
+          <div class="text-[10px] text-gray-400">AdSense: ${data.monthly_totals.adsense_revenue} • Sponsors: ${data.monthly_totals.sponsorship_revenue}</div>
+        </div>
+        <div class="glass-panel p-5 rounded-2xl space-y-2">
+          <div class="text-xs text-gray-400">Recommended Sponsor Rate</div>
+          <div class="text-2xl font-extrabold text-white">${data.sponsorship_calculator.recommended_integration_rate}</div>
+          <div class="text-[10px] text-purple-300">Based on ${data.sponsorship_calculator.avg_views_per_video} avg views</div>
+        </div>
+        <div class="glass-panel p-5 rounded-2xl space-y-2">
+          <div class="text-xs text-gray-400">Projected Annual Run-Rate</div>
+          <div class="text-2xl font-extrabold text-cyan-400">${data.monthly_totals.projected_annual}</div>
+          <div class="text-[10px] text-green-400">+34% YOY Growth</div>
+        </div>
+      `;
+    }
+
+    const tableContainer = document.getElementById('sponsorships-table-container');
+    if (tableContainer) {
+      tableContainer.innerHTML = data.active_brand_deals.map(deal => `
+        <div class="p-3 rounded-xl bg-black/40 border border-gray-800 flex items-center justify-between">
+          <div>
+            <div class="font-bold text-white text-xs">${deal.brand}</div>
+            <div class="text-[10px] text-gray-400">${deal.deliverable} • Due ${deal.due_date}</div>
+          </div>
+          <div class="text-right">
+            <div class="font-bold text-emerald-400 text-xs">${deal.deal_value}</div>
+            <span class="text-[9px] px-2 py-0.5 rounded bg-gray-800 text-purple-300 font-semibold">${deal.stage}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+  } catch (e) {
+    console.error("Monetization load error:", e);
+  }
+}
+
+// -------------------------------------------------------------
+// 12. 1-CLICK VIDEO GENERATION CONTROLLER
+// -------------------------------------------------------------
 function setTopic(text) {
-  document.getElementById('input-topic').value = text;
+  const input = document.getElementById('input-topic');
+  if (input) input.value = text;
 }
 
 function selectEngine(engine) {
-  document.getElementById('input-engine').value = engine;
+  const input = document.getElementById('input-engine');
+  if (input) input.value = engine;
   const veoCard = document.getElementById('engine-card-veo');
   const procCard = document.getElementById('engine-card-procedural');
   const btn = document.getElementById('btn-generate');
 
   if (engine === 'veo') {
-    veoCard.className = "cursor-pointer p-4 rounded-xl border border-blue-500 bg-blue-950/30 transition hover:scale-[1.01]";
-    procCard.className = "cursor-pointer p-4 rounded-xl border border-gray-800 bg-black/40 transition hover:scale-[1.01]";
-    btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> <span>GENERATE WITH GOOGLE VEO</span>`;
-    btn.className = "w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white font-extrabold text-sm tracking-wide glow-btn transition flex items-center justify-center gap-2";
+    if (veoCard) veoCard.className = "cursor-pointer p-4 rounded-xl border border-blue-500 bg-blue-950/30 transition";
+    if (procCard) procCard.className = "cursor-pointer p-4 rounded-xl border border-gray-800 bg-black/40 transition";
+    if (btn) btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> <span>GENERATE WITH GOOGLE VEO</span>`;
   } else {
-    procCard.className = "cursor-pointer p-4 rounded-xl border border-yellow-500 bg-yellow-950/30 transition hover:scale-[1.01]";
-    veoCard.className = "cursor-pointer p-4 rounded-xl border border-gray-800 bg-black/40 transition hover:scale-[1.01]";
-    btn.innerHTML = `<i class="fa-solid fa-bolt"></i> <span>GENERATE FAST SHORT</span>`;
-    btn.className = "w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-yellow-600 via-orange-600 to-red-500 text-white font-extrabold text-sm tracking-wide glow-btn transition flex items-center justify-center gap-2";
+    if (procCard) procCard.className = "cursor-pointer p-4 rounded-xl border border-yellow-500 bg-yellow-950/30 transition";
+    if (veoCard) veoCard.className = "cursor-pointer p-4 rounded-xl border border-gray-800 bg-black/40 transition";
+    if (btn) btn.innerHTML = `<i class="fa-solid fa-bolt"></i> <span>GENERATE FAST SHORT</span>`;
   }
 }
 
 function selectTone(tone) {
-  document.getElementById('input-tone').value = tone;
+  const input = document.getElementById('input-tone');
+  if (input) input.value = tone;
   document.querySelectorAll('.tone-card').forEach(card => {
     card.classList.remove('border-purple-500', 'bg-purple-950/30');
     card.classList.add('border-gray-800', 'bg-black/40');
@@ -51,7 +599,8 @@ function selectTone(tone) {
 }
 
 function selectVoice(voice) {
-  document.getElementById('input-voice').value = voice;
+  const input = document.getElementById('input-voice');
+  if (input) input.value = voice;
   document.querySelectorAll('.voice-card').forEach(card => {
     card.classList.remove('border-purple-500', 'bg-purple-950/30');
     card.classList.add('border-gray-800', 'bg-black/40');
@@ -74,7 +623,6 @@ async function startVideoGeneration() {
     return;
   }
 
-  // Open Modal
   document.getElementById('generation-modal').classList.remove('hidden');
   document.getElementById('modal-title').innerText = engine === 'veo' ? "Generating with Google Veo AI..." : "Generating Viral Short...";
   document.getElementById('modal-status-text').innerText = "🧠 Crafting viral hook & script...";
@@ -82,7 +630,6 @@ async function startVideoGeneration() {
   document.getElementById('modal-progress-percent').innerText = "20%";
   document.getElementById('modal-success-box').classList.add('hidden');
 
-  // Simulated progress stages for smooth UI during cloud rendering
   let progress = 20;
   const progressTimer = setInterval(() => {
     if (progress < 85) {
@@ -148,6 +695,9 @@ function closeModal() {
   document.getElementById('generation-modal').classList.add('hidden');
 }
 
+// -------------------------------------------------------------
+// 13. VIDEO GALLERY LOADER
+// -------------------------------------------------------------
 async function fetchVideoList() {
   try {
     const res = await fetch('/api/videos');
@@ -155,16 +705,19 @@ async function fetchVideoList() {
 
     const data = await res.json();
     const videos = data.videos || [];
-    document.getElementById('video-count').innerText = videos.length;
+    
+    const sidebarCount = document.getElementById('sidebar-video-count');
+    if (sidebarCount) sidebarCount.innerText = videos.length;
 
     const grid = document.getElementById('video-grid');
+    if (!grid) return;
     grid.innerHTML = '';
 
     if (videos.length === 0) {
       grid.innerHTML = `
         <div class="col-span-full py-12 text-center text-gray-500">
           <i class="fa-solid fa-film text-4xl mb-3"></i>
-          <p class="text-sm">No videos generated yet. Go to the Generator tab to create your first Short!</p>
+          <p class="text-sm">No videos generated yet. Click 'Create New Video' to create your first Short!</p>
         </div>
       `;
       return;
@@ -172,7 +725,7 @@ async function fetchVideoList() {
 
     videos.forEach(v => {
       const card = document.createElement('div');
-      card.className = "glass-panel p-4 rounded-2xl space-y-3 flex flex-col justify-between";
+      card.className = "glass-panel p-4 rounded-2xl space-y-3 flex flex-col justify-between border border-gray-800";
       card.innerHTML = `
         <div class="space-y-2">
           <video src="${v.url}" controls class="w-full aspect-[9/16] bg-black rounded-xl object-cover border border-gray-800"></video>
@@ -193,6 +746,9 @@ async function fetchVideoList() {
   }
 }
 
+// -------------------------------------------------------------
+// 14. SETTINGS
+// -------------------------------------------------------------
 function saveSettings() {
   const pexelsKey = document.getElementById('setting-pexels').value.trim();
   const veoKey = document.getElementById('setting-veo').value.trim();
@@ -201,10 +757,13 @@ function saveSettings() {
   alert("Settings saved successfully!");
 }
 
+// Initialize on DOM load
 document.addEventListener('DOMContentLoaded', () => {
   const savedPexels = localStorage.getItem('pexels_api_key');
   const savedVeo = localStorage.getItem('veo_api_key');
-  if (savedPexels) document.getElementById('setting-pexels').value = savedPexels;
-  if (savedVeo) document.getElementById('setting-veo').value = savedVeo;
+  if (savedPexels && document.getElementById('setting-pexels')) document.getElementById('setting-pexels').value = savedPexels;
+  if (savedVeo && document.getElementById('setting-veo')) document.getElementById('setting-veo').value = savedVeo;
+
+  loadDashboardStats();
   fetchVideoList();
 });

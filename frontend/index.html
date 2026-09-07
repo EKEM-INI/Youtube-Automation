@@ -37,11 +37,6 @@
       backdrop-filter: blur(16px);
       border: 1px solid rgba(255, 255, 255, 0.07);
     }
-    .glass-card {
-      background: rgba(26, 29, 44, 0.6);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-    }
     .glow-btn {
       box-shadow: 0 0 25px -5px rgba(168, 85, 247, 0.5);
     }
@@ -51,7 +46,6 @@
     .glow-blue {
       box-shadow: 0 0 25px -5px rgba(66, 133, 244, 0.5);
     }
-    /* Custom Scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #0b0c10; }
     ::-webkit-scrollbar-thumb { background: #2a2d3d; border-radius: 4px; }
@@ -74,7 +68,7 @@
             AutoShorts<span class="text-purple-500">.AI</span>
           </span>
           <div class="text-[10px] text-gray-400 font-semibold uppercase tracking-wider flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span> Studio 2.0
+            <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span> Studio 2.5
           </div>
         </div>
       </div>
@@ -82,7 +76,7 @@
       <!-- Navigation Links -->
       <div class="space-y-6 text-xs">
         
-        <!-- Section: Command Center -->
+        <!-- Command Center -->
         <div class="space-y-1">
           <div class="px-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Command Center</div>
           <button onclick="switchView('dashboard')" id="nav-dashboard" class="nav-link w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-semibold transition bg-purple-600/20 text-purple-300 border border-purple-500/30">
@@ -99,7 +93,7 @@
           </button>
         </div>
 
-        <!-- Section: Creation Suite -->
+        <!-- Creation Suite -->
         <div class="space-y-1">
           <div class="px-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Creation Suite</div>
           <button onclick="switchView('creator')" id="nav-creator" class="nav-link w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-semibold transition text-gray-400 hover:text-white hover:bg-gray-800/50">
@@ -115,11 +109,11 @@
             <i class="fa-solid fa-microphone-lines text-sm w-4 text-emerald-400"></i> Voiceover Studio
           </button>
           <button onclick="switchView('thumbnails')" id="nav-thumbnails" class="nav-link w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-semibold transition text-gray-400 hover:text-white hover:bg-gray-800/50">
-            <i class="fa-solid fa-image text-sm w-4 text-orange-400"></i> Thumbnail A/B Tester
+            <i class="fa-solid fa-image text-sm w-4 text-orange-400"></i> Thumbnail Generator
           </button>
         </div>
 
-        <!-- Section: Growth & Automation -->
+        <!-- Growth & Distribution -->
         <div class="space-y-1">
           <div class="px-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Growth & Distribution</div>
           <button onclick="switchView('research')" id="nav-research" class="nav-link w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-semibold transition text-gray-400 hover:text-white hover:bg-gray-800/50">
@@ -142,7 +136,7 @@
           </button>
         </div>
 
-        <!-- Section: Business & Team -->
+        <!-- Business & Team -->
         <div class="space-y-1">
           <div class="px-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Business & Team</div>
           <button onclick="switchView('monetization')" id="nav-monetization" class="nav-link w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-semibold transition text-gray-400 hover:text-white hover:bg-gray-800/50">
@@ -163,7 +157,7 @@
     <div class="p-4 border-t border-gray-800/80 bg-black/40 flex items-center justify-between">
       <div class="flex items-center gap-3">
         <div class="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center font-bold text-xs text-white">
-          EK
+          CY
         </div>
         <div>
           <div class="text-xs font-bold text-white leading-none">Cyril (Admin)</div>
@@ -180,9 +174,9 @@
     <!-- TOP APP HEADER -->
     <header class="h-16 border-b border-gray-800/80 bg-[#0b0c10]/90 backdrop-blur-md sticky top-0 z-20 px-6 flex items-center justify-between gap-4">
       
-      <!-- Multi-Channel Selector -->
+      <!-- YouTube Channel Connection Badge / Dropdown -->
       <div class="flex items-center gap-3">
-        <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gray-900 border border-gray-800 text-xs">
+        <div id="youtube-connection-status" class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gray-900 border border-gray-800 text-xs">
           <i class="fa-brands fa-youtube text-red-500 text-sm"></i>
           <span class="text-gray-400 font-medium">Channel:</span>
           <select id="channel-selector" onchange="changeChannel(this.value)" class="bg-transparent text-white font-bold focus:outline-none cursor-pointer">
@@ -191,9 +185,11 @@
           </select>
         </div>
 
-        <div class="hidden sm:inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-purple-950/60 text-purple-300 border border-purple-800/40">
-          <i class="fa-solid fa-brain text-purple-400"></i> AI Channel Brain Active
-        </div>
+        <!-- Google OAuth Channel Connect Button -->
+        <button onclick="openYouTubeAuthModal()" id="btn-connect-channel" class="px-3 py-1.5 rounded-xl bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/30 text-xs font-bold transition flex items-center gap-1.5">
+          <i class="fa-brands fa-google"></i>
+          <span id="connect-btn-text">Connect YouTube Channel</span>
+        </button>
       </div>
 
       <!-- Right Action Bar -->
@@ -280,37 +276,7 @@
             <span class="text-xs text-gray-400">Auto-updated hourly</span>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="brain-feed-container">
-            <!-- Brain Item 1 -->
-            <div class="p-4 rounded-xl bg-purple-950/20 border border-purple-500/30 space-y-3">
-              <div class="flex items-center justify-between">
-                <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-purple-600/30 text-purple-300 uppercase">Viral Opportunity</span>
-                <span class="text-[11px] text-yellow-400 font-bold">High Impact</span>
-              </div>
-              <div>
-                <h4 class="font-bold text-sm text-white">Viral Spike: Google Veo 2 & Sora Comparison</h4>
-                <p class="text-xs text-gray-300 mt-1">Competitor searches jumped +142% this week. Low volume of 9:16 vertical Shorts in this subtopic.</p>
-              </div>
-              <button onclick="generateScriptFromTopic('Google Veo 2 vs OpenAI Sora Full Comparison')" class="w-full py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition">
-                ⚡ 1-Click Generate This Short
-              </button>
-            </div>
-
-            <!-- Brain Item 2 -->
-            <div class="p-4 rounded-xl bg-blue-950/20 border border-blue-500/30 space-y-3">
-              <div class="flex items-center justify-between">
-                <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-blue-600/30 text-blue-300 uppercase">Retention Fix</span>
-                <span class="text-[11px] text-cyan-400 font-bold">Optimization</span>
-              </div>
-              <div>
-                <h4 class="font-bold text-sm text-white">0-3s Hook Acceleration</h4>
-                <p class="text-xs text-gray-300 mt-1">Shorts with highlighted active words in the first 3 seconds saw an average retention gain of +14% APV.</p>
-              </div>
-              <button onclick="switchView('creator')" class="w-full py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition">
-                🎨 Open Dynamic Subtitle Studio
-              </button>
-            </div>
-          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="brain-feed-container"></div>
         </div>
 
       </div>
@@ -331,12 +297,8 @@
           </button>
         </div>
 
-        <!-- Agents Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="agent-cards-grid">
-          <!-- 8 Agent Cards injected dynamically -->
-        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="agent-cards-grid"></div>
 
-        <!-- Pipeline Execution Logs & Artifact Preview -->
         <div class="glass-panel p-6 rounded-2xl space-y-4">
           <h3 class="text-sm font-bold text-white flex items-center gap-2">
             <i class="fa-solid fa-terminal text-purple-400"></i> Live Agent Collaboration Output
@@ -351,7 +313,6 @@
       <!-- VIEW 3: 1-CLICK VIDEO GENERATION ENGINE                   -->
       <!-- ========================================================= -->
       <div id="view-creator" class="hidden space-y-8">
-        <!-- Hero Banner -->
         <div class="relative overflow-hidden rounded-3xl p-8 bg-gradient-to-br from-purple-900/30 via-black to-blue-950/30 border border-purple-500/20 shadow-2xl">
           <div class="relative z-10 max-w-3xl">
             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-purple-500/10 text-purple-400 border border-purple-500/20 mb-3">
@@ -366,7 +327,6 @@
           </div>
         </div>
 
-        <!-- Form & Preview -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div class="lg:col-span-2 space-y-6">
 
@@ -527,13 +487,11 @@
           </button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="ideas-grid">
-          <!-- Ideas loaded dynamically -->
-        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="ideas-grid"></div>
       </div>
 
       <!-- ========================================================= -->
-      <!-- VIEW 5: AI SCRIPT STUDIO (SHORTS & LONG-FORM)             -->
+      <!-- VIEW 5: AI SCRIPT STUDIO                                  -->
       <!-- ========================================================= -->
       <div id="view-scripts" class="hidden space-y-6">
         <div class="flex justify-between items-center">
@@ -575,9 +533,14 @@
           <div class="lg:col-span-2 glass-panel p-6 rounded-2xl space-y-4">
             <div class="flex justify-between items-center">
               <h3 class="font-bold text-sm text-white" id="script-editor-title">Generated Script & Storyboard</h3>
-              <button onclick="sendScriptToCreator()" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition">
-                🚀 Send to Video Generator
-              </button>
+              <div class="flex gap-2">
+                <button onclick="copyScriptText()" class="px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-white font-bold text-xs transition">
+                  <i class="fa-solid fa-copy mr-1"></i> Copy
+                </button>
+                <button onclick="sendScriptToCreator()" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition">
+                  🚀 Send to Video Generator
+                </button>
+              </div>
             </div>
             <textarea id="script-editor-body" rows="14" class="w-full bg-black/60 border border-gray-800 rounded-xl p-4 text-xs text-gray-200 font-mono leading-relaxed focus:outline-none focus:border-purple-500"></textarea>
           </div>
@@ -585,23 +548,122 @@
       </div>
 
       <!-- ========================================================= -->
-      <!-- VIEW 6: NICHE & COMPETITOR RESEARCH                       -->
+      <!-- VIEW 6: VOICEOVER STUDIO (LIVE SYNTHESIZER)               -->
       <!-- ========================================================= -->
-      <div id="view-research" class="hidden space-y-6">
+      <div id="view-voice" class="hidden space-y-6">
         <div>
           <h2 class="text-2xl font-extrabold text-white flex items-center gap-2">
-            <i class="fa-solid fa-magnifying-glass-chart text-blue-400"></i> Niche Discovery & RPM Intelligence
+            <i class="fa-solid fa-microphone-lines text-emerald-400"></i> Neural Voiceover Studio
           </h2>
-          <p class="text-xs text-gray-400">Analyze high-paying YouTube niches, competitor saturation, search volume, and content gaps.</p>
+          <p class="text-xs text-gray-400">Generate studio-quality speech from text with live in-browser preview, speed adjustments, and MP3 download.</p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="niches-table-grid">
-          <!-- Niches injected dynamically -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="glass-panel p-6 rounded-2xl space-y-4">
+            <h3 class="font-bold text-sm text-white">Voice Settings</h3>
+            <div>
+              <label class="text-xs text-gray-400">Narrator Voice</label>
+              <select id="voice-studio-select" class="w-full mt-1 bg-black/50 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white">
+                <option value="christopher">Christopher — Deep Authoritative (US)</option>
+                <option value="guy">Guy — Viral & Energetic (US)</option>
+                <option value="jenny">Jenny — Smooth & Friendly (US)</option>
+                <option value="ryan">Ryan — British Narrator (UK)</option>
+                <option value="sonia">Sonia — British Female (UK)</option>
+                <option value="aria">Aria — Expressive Female (US)</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs text-gray-400 flex justify-between">
+                <span>Speed Multiplier</span>
+                <span id="voice-speed-val" class="text-emerald-400 font-bold">1.0x</span>
+              </label>
+              <input type="range" id="voice-speed-slider" min="-30" max="30" value="0" oninput="document.getElementById('voice-speed-val').innerText = (1 + this.value/100).toFixed(2) + 'x'" class="w-full mt-2 accent-emerald-500" />
+            </div>
+            <button onclick="synthesizeVoiceStudioAction()" id="btn-synthesize-voice" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition">
+              🎙️ Synthesize Neural Audio
+            </button>
+          </div>
+
+          <div class="lg:col-span-2 glass-panel p-6 rounded-2xl space-y-4">
+            <h3 class="font-bold text-sm text-white">Script / Speech Text</h3>
+            <textarea id="voice-studio-text" rows="8" placeholder="Type or paste text here to synthesize..." class="w-full bg-black/60 border border-gray-800 rounded-xl p-4 text-xs text-gray-200 leading-relaxed focus:outline-none focus:border-emerald-500">Here are 3 psychological tricks people use on you without you realizing. First, the illusion of choice. When someone gives you two options, your brain forgets that no is also an option.</textarea>
+
+            <!-- Audio Player Result -->
+            <div id="voice-player-container" class="p-4 rounded-xl bg-black/40 border border-gray-800 flex items-center justify-between gap-4 hidden">
+              <audio id="voice-audio-el" controls class="flex-1"></audio>
+              <a id="voice-download-link" href="#" download class="px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition flex items-center gap-1.5">
+                <i class="fa-solid fa-download"></i> Save MP3
+              </a>
+            </div>
+          </div>
         </div>
       </div>
 
       <!-- ========================================================= -->
-      <!-- VIEW 7: YOUTUBE SEO OPTIMIZER                             -->
+      <!-- VIEW 7: THUMBNAIL GENERATOR (LIVE CANVAS)                 -->
+      <!-- ========================================================= -->
+      <div id="view-thumbnails" class="hidden space-y-6">
+        <div>
+          <h2 class="text-2xl font-extrabold text-white flex items-center gap-2">
+            <i class="fa-solid fa-image text-orange-400"></i> AI Thumbnail Studio & Canvas Generator
+          </h2>
+          <p class="text-xs text-gray-400">Generate 3 A/B test thumbnail concepts or render high-resolution 1280x720 PNG thumbnails in real-time.</p>
+        </div>
+
+        <div class="glass-panel p-6 rounded-2xl space-y-4">
+          <div class="flex flex-col sm:flex-row gap-4">
+            <input type="text" id="thumb-input-topic" value="THEY HID THIS FROM YOU" placeholder="Enter headline text" class="flex-1 bg-black/50 border border-gray-700 rounded-xl px-4 py-3 text-xs text-white" />
+            <button onclick="generateThumbnailsAction()" class="px-6 py-3 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs transition">
+              🎨 Generate 3 A/B Variants
+            </button>
+            <button onclick="renderCanvasThumbnail()" class="px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-yellow-500 text-white font-bold text-xs transition">
+              ⚡ Render HD Canvas (.PNG)
+            </button>
+          </div>
+        </div>
+
+        <!-- Live Canvas Preview Box -->
+        <div id="canvas-preview-wrapper" class="glass-panel p-6 rounded-2xl space-y-4 hidden">
+          <div class="flex justify-between items-center">
+            <h3 class="font-bold text-sm text-white">Live Rendered 1280x720 Thumbnail</h3>
+            <a id="canvas-download-btn" href="#" download="thumbnail.png" class="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white font-bold text-xs transition flex items-center gap-1.5">
+              <i class="fa-solid fa-download"></i> Download PNG
+            </a>
+          </div>
+          <div class="max-w-xl mx-auto rounded-xl overflow-hidden border border-gray-800 shadow-2xl">
+            <canvas id="thumbnail-canvas" width="1280" height="720" class="w-full h-auto"></canvas>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="thumbnails-grid"></div>
+      </div>
+
+      <!-- ========================================================= -->
+      <!-- VIEW 8: NICHE & GOOGLE TRENDS RESEARCH                    -->
+      <!-- ========================================================= -->
+      <div id="view-research" class="hidden space-y-6">
+        <div>
+          <h2 class="text-2xl font-extrabold text-white flex items-center gap-2">
+            <i class="fa-solid fa-magnifying-glass-chart text-blue-400"></i> Niche Discovery & Google Trends Intelligence
+          </h2>
+          <p class="text-xs text-gray-400">Analyze high-paying YouTube niches, competitor saturation, search volume, and live Google search suggestions.</p>
+        </div>
+
+        <div class="glass-panel p-6 rounded-2xl space-y-4">
+          <div class="flex gap-4">
+            <input type="text" id="trends-search-input" value="ai automation" placeholder="Search Google Trends keyword..." class="flex-1 bg-black/50 border border-gray-700 rounded-xl px-4 py-2.5 text-xs text-white" />
+            <button onclick="searchGoogleTrendsAction()" class="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition">
+              <i class="fa-brands fa-google mr-1"></i> Scan Google Trends
+            </button>
+          </div>
+          <div id="trends-results-container" class="flex flex-wrap gap-2 pt-2"></div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="niches-table-grid"></div>
+      </div>
+
+      <!-- ========================================================= -->
+      <!-- VIEW 9: YOUTUBE SEO OPTIMIZER                             -->
       <!-- ========================================================= -->
       <div id="view-seo" class="hidden space-y-6">
         <div>
@@ -632,40 +694,13 @@
               <h3 class="font-bold text-sm text-white">SEO Score & Tag Recommendations</h3>
               <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-950 text-green-400 border border-green-800">SEO Score: 98/100</span>
             </div>
-            <div id="seo-output-content" class="space-y-4 text-xs text-gray-300">
-              <!-- Dynamically filled -->
-            </div>
+            <div id="seo-output-content" class="space-y-4 text-xs text-gray-300"></div>
           </div>
         </div>
       </div>
 
       <!-- ========================================================= -->
-      <!-- VIEW 8: THUMBNAIL STUDIO & A/B TESTER                     -->
-      <!-- ========================================================= -->
-      <div id="view-thumbnails" class="hidden space-y-6">
-        <div>
-          <h2 class="text-2xl font-extrabold text-white flex items-center gap-2">
-            <i class="fa-solid fa-image text-orange-400"></i> AI Thumbnail Studio & A/B Tester
-          </h2>
-          <p class="text-xs text-gray-400">Generate 3 high-contrast A/B test thumbnail concepts with CTR predictions and visual prompts.</p>
-        </div>
-
-        <div class="glass-panel p-6 rounded-2xl space-y-4">
-          <div class="flex gap-4">
-            <input type="text" id="thumb-input-topic" value="The Shocking Truth About Artificial General Intelligence" class="flex-1 bg-black/50 border border-gray-700 rounded-xl px-4 py-3 text-xs text-white" />
-            <button onclick="generateThumbnailsAction()" class="px-6 py-3 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs transition">
-              Generate 3 A/B Variants
-            </button>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="thumbnails-grid">
-          <!-- Thumbnail variants injected dynamically -->
-        </div>
-      </div>
-
-      <!-- ========================================================= -->
-      <!-- VIEW 9: 1-CLICK CONTENT REPURPOSER                        -->
+      <!-- VIEW 10: 1-CLICK CONTENT REPURPOSER                       -->
       <!-- ========================================================= -->
       <div id="view-repurposer" class="hidden space-y-6">
         <div>
@@ -684,31 +719,30 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="repurposed-output-grid">
-          <!-- Repurposed formats injected dynamically -->
-        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="repurposed-output-grid"></div>
       </div>
 
       <!-- ========================================================= -->
-      <!-- VIEW 10: CONTENT CALENDAR & SCHEDULER                     -->
+      <!-- VIEW 11: CONTENT CALENDAR                                 -->
       <!-- ========================================================= -->
       <div id="view-calendar" class="hidden space-y-6">
         <div class="flex justify-between items-center">
           <div>
             <h2 class="text-2xl font-extrabold text-white flex items-center gap-2">
-              <i class="fa-solid fa-calendar-days text-rose-400"></i> Visual Content Calendar
+              <i class="fa-solid fa-calendar-days text-rose-400"></i> Visual Content Calendar & Scheduler
             </h2>
-            <p class="text-xs text-gray-400">Drag-and-drop posting schedule for automated YouTube publishing.</p>
+            <p class="text-xs text-gray-400">Schedule releases for multi-channel automated YouTube distribution.</p>
           </div>
+          <button onclick="openAddEventModal()" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs transition">
+            + Schedule Video
+          </button>
         </div>
 
-        <div class="glass-panel p-6 rounded-2xl space-y-4" id="calendar-events-container">
-          <!-- Events loaded dynamically -->
-        </div>
+        <div class="glass-panel p-6 rounded-2xl space-y-4" id="calendar-events-container"></div>
       </div>
 
       <!-- ========================================================= -->
-      <!-- VIEW 11: MONETIZATION & SPONSORSHIPS                      -->
+      <!-- VIEW 12: MONETIZATION & SPONSORSHIPS                      -->
       <!-- ========================================================= -->
       <div id="view-monetization" class="hidden space-y-6">
         <div>
@@ -718,8 +752,25 @@
           <p class="text-xs text-gray-400">Track AdSense earnings, brand outreach deals, and calculate dynamic video sponsorship pricing.</p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="monetization-stats-grid">
-          <!-- Stats loaded dynamically -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="monetization-stats-grid"></div>
+
+        <!-- Interactive Calculator -->
+        <div class="glass-panel p-6 rounded-2xl space-y-4">
+          <h3 class="font-bold text-sm text-white">Dynamic Sponsorship Pricing Calculator</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
+            <div>
+              <label class="text-xs text-gray-400">Average Views Per Video</label>
+              <input type="number" id="calc-views-input" value="85000" step="5000" oninput="recalculateSponsorRate(this.value)" class="w-full mt-1 bg-black/50 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white" />
+            </div>
+            <div>
+              <div class="text-xs text-gray-400">Recommended 60s Midroll Rate</div>
+              <div class="text-xl font-extrabold text-emerald-400 mt-1" id="calc-integration-rate">$2,550 - $3,825</div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-400">Recommended Dedicated Video Rate</div>
+              <div class="text-xl font-extrabold text-cyan-400 mt-1" id="calc-dedicated-rate">$5,950 - $8,500</div>
+            </div>
+          </div>
         </div>
 
         <div class="glass-panel p-6 rounded-2xl space-y-4">
@@ -729,7 +780,7 @@
       </div>
 
       <!-- ========================================================= -->
-      <!-- VIEW 12: VIDEO LIBRARY                                    -->
+      <!-- VIEW 13: VIDEO LIBRARY                                    -->
       <!-- ========================================================= -->
       <div id="view-gallery" class="hidden space-y-6">
         <div class="flex items-center justify-between">
@@ -748,7 +799,7 @@
       </div>
 
       <!-- ========================================================= -->
-      <!-- VIEW 13: TEAM WORKSPACE                                   -->
+      <!-- VIEW 14: TEAM WORKSPACE                                   -->
       <!-- ========================================================= -->
       <div id="view-team" class="hidden space-y-6">
         <div>
@@ -808,24 +859,33 @@
       </div>
 
       <!-- ========================================================= -->
-      <!-- VIEW 14: SETTINGS & KEYS                                  -->
+      <!-- VIEW 15: SETTINGS & GOOGLE PLUGINS                        -->
       <!-- ========================================================= -->
       <div id="view-settings" class="hidden max-w-2xl mx-auto space-y-6">
         <div class="glass-panel p-6 rounded-2xl space-y-6">
-          <h2 class="text-xl font-bold text-white">AI Engine & API Keys</h2>
+          <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-gear text-purple-400"></i> Settings & Google Plugins
+          </h2>
           
-          <div class="space-y-4">
+          <div class="space-y-4 text-xs">
             <div>
-              <label class="block text-xs font-bold text-gray-300 mb-1">
-                Google Gemini / Veo API Key <span class="text-blue-400">(Recommended for Google Veo AI Video)</span>
+              <label class="block font-bold text-gray-300 mb-1">
+                Google Gemini & Veo API Key <span class="text-blue-400">(Google AI Studio)</span>
               </label>
-              <input type="password" id="setting-veo" placeholder="Paste Google AI Studio / Gemini API key" class="w-full bg-black/50 border border-gray-700 focus:border-blue-500 rounded-xl px-4 py-2.5 text-white text-xs focus:outline-none" />
-              <span class="text-[10px] text-gray-500">Get your key from aistudio.google.com</span>
+              <input type="password" id="setting-veo" placeholder="Paste Google AI Studio API key" class="w-full bg-black/50 border border-gray-700 focus:border-blue-500 rounded-xl px-4 py-2.5 text-white text-xs focus:outline-none" />
+              <span class="text-[10px] text-gray-500">Powers Google Veo 2.0 AI video, scripts, and SEO analysis.</span>
             </div>
 
             <div>
-              <label class="block text-xs font-bold text-gray-300 mb-1">
-                Pexels API Key <span class="text-gray-500">(Optional for stock b-roll)</span>
+              <label class="block font-bold text-gray-300 mb-1">
+                Google OAuth Client ID <span class="text-red-400">(YouTube Data API v3)</span>
+              </label>
+              <input type="text" id="setting-client-id" placeholder="e.g. 123456789.apps.googleusercontent.com" class="w-full bg-black/50 border border-gray-700 focus:border-red-500 rounded-xl px-4 py-2.5 text-white text-xs focus:outline-none" />
+            </div>
+
+            <div>
+              <label class="block font-bold text-gray-300 mb-1">
+                Pexels Stock Video Key <span class="text-gray-500">(Optional)</span>
               </label>
               <input type="text" id="setting-pexels" placeholder="Paste free Pexels API key" class="w-full bg-black/50 border border-gray-700 focus:border-purple-500 rounded-xl px-4 py-2.5 text-white text-xs focus:outline-none" />
             </div>
@@ -838,6 +898,29 @@
       </div>
 
     </main>
+  </div>
+
+  <!-- GOOGLE YOUTUBE OAUTH MODAL -->
+  <div id="youtube-auth-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="glass-panel max-w-md w-full p-6 rounded-3xl border border-red-500/40 shadow-2xl space-y-6 text-center">
+      <div class="w-16 h-16 rounded-2xl bg-red-600/20 border border-red-500/40 flex items-center justify-center text-red-500 text-3xl mx-auto shadow-lg">
+        <i class="fa-brands fa-youtube"></i>
+      </div>
+      <div>
+        <h3 class="text-xl font-extrabold text-white">Connect Your YouTube Channel</h3>
+        <p class="text-xs text-gray-300 mt-2">
+          Authenticate with Google to enable 1-click video publishing, live subscriber syncing, and real-time retention tracking.
+        </p>
+      </div>
+      <div class="space-y-3">
+        <button onclick="connectYouTubeChannelAction()" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-red-600 to-pink-600 text-white font-bold text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-red-600/30">
+          <i class="fa-brands fa-google"></i> Sign in with Google Account
+        </button>
+        <button onclick="closeYouTubeAuthModal()" class="w-full py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold text-xs transition">
+          Cancel
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- LIVE GENERATION PROGRESS MODAL -->

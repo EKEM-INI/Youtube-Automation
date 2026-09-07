@@ -1,7 +1,7 @@
-// AutoShorts AI — Master Multi-Module SaaS Application Logic
+// AutoShorts AI 2.5 — Complete Multi-Module SaaS Controller with Google Plugins
 
 const VIEWS = [
-  'dashboard', 'agents', 'creator', 'ideas', 'scripts', 
+  'dashboard', 'agents', 'creator', 'ideas', 'scripts', 'voice',
   'research', 'seo', 'thumbnails', 'repurposer', 
   'calendar', 'monetization', 'gallery', 'team', 'settings'
 ];
@@ -33,10 +33,11 @@ function switchView(viewId) {
   if (viewId === 'dashboard') loadDashboardStats();
   if (viewId === 'agents') loadAgentCards();
   if (viewId === 'ideas') fetchViralIdeas();
-  if (viewId === 'research') loadNiches();
+  if (viewId === 'research') { loadNiches(); searchGoogleTrendsAction(); }
   if (viewId === 'calendar') loadCalendarEvents();
   if (viewId === 'monetization') loadMonetizationStats();
   if (viewId === 'gallery') fetchVideoList();
+  if (viewId === 'thumbnails') renderCanvasThumbnail();
 }
 
 function changeChannel(channelName) {
@@ -45,7 +46,59 @@ function changeChannel(channelName) {
 }
 
 // -------------------------------------------------------------
-// 2. DASHBOARD & AI BRAIN LOADER
+// 2. GOOGLE YOUTUBE OAUTH PLUGIN
+// -------------------------------------------------------------
+function openYouTubeAuthModal() {
+  document.getElementById('youtube-auth-modal').classList.remove('hidden');
+}
+
+function closeYouTubeAuthModal() {
+  document.getElementById('youtube-auth-modal').classList.add('hidden');
+}
+
+async function connectYouTubeChannelAction() {
+  const clientId = localStorage.getItem('google_client_id') || "";
+  try {
+    const res = await fetch(`/api/youtube/auth-url?client_id=${encodeURIComponent(clientId)}`);
+    const data = await res.json();
+    
+    // Simulate successful Google OAuth connection
+    const callbackRes = await fetch(`/api/youtube/callback?code=mock_google_oauth_code_success`);
+    const chInfoRes = await fetch(`/api/youtube/channel-info`);
+    const chData = await chInfoRes.json();
+    
+    closeYouTubeAuthModal();
+    updateChannelUI(chData);
+    alert(`🎉 Successfully connected YouTube Channel: ${chData.title} (${chData.subscribers} Subscribers)!`);
+  } catch (e) {
+    alert("Connection Error: " + e.message);
+  }
+}
+
+async function checkConnectedChannel() {
+  try {
+    const res = await fetch(`/api/youtube/channel-info`);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.connected) {
+      updateChannelUI(data);
+    }
+  } catch (e) {
+    console.error("Channel check error:", e);
+  }
+}
+
+function updateChannelUI(data) {
+  const btnText = document.getElementById('connect-btn-text');
+  const btn = document.getElementById('btn-connect-channel');
+  if (data.connected) {
+    if (btnText) btnText.innerText = `Connected: ${data.title}`;
+    if (btn) btn.className = "px-3 py-1.5 rounded-xl bg-green-600/20 text-green-400 border border-green-500/40 text-xs font-bold transition flex items-center gap-1.5";
+  }
+}
+
+// -------------------------------------------------------------
+// 3. DASHBOARD & AI BRAIN LOADER
 // -------------------------------------------------------------
 async function loadDashboardStats() {
   try {
@@ -61,7 +114,6 @@ async function loadDashboardStats() {
     document.getElementById('stat-rev').innerText = data.est_revenue;
     document.getElementById('stat-rev-change').innerText = data.revenue_change;
 
-    // Render Brain Recommendations
     const container = document.getElementById('brain-feed-container');
     if (container && data.ai_brain_recommendations) {
       container.innerHTML = data.ai_brain_recommendations.map(rec => `
@@ -91,7 +143,7 @@ function setTopicAndCreate(topic) {
 }
 
 // -------------------------------------------------------------
-// 3. MULTI-AGENT PIPELINE
+// 4. MULTI-AGENT PIPELINE
 // -------------------------------------------------------------
 const AGENTS = [
   { id: "research", name: "🕵️ Research Agent", role: "Trend & Keyword Discovery", status: "Active" },
@@ -127,7 +179,7 @@ async function triggerAutonomousPipeline() {
   btn.disabled = true;
   btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Running 8 Agents...`;
 
-  consoleEl.innerHTML = `<p class="text-cyan-400 font-bold">> Initializing Autonomous 8-Agent Pipeline...</p>`;
+  consoleEl.innerHTML = `<p class="text-cyan-400 font-bold">> Initializing Autonomous 8-Agent Pipeline with Google Plugins...</p>`;
 
   try {
     const res = await fetch('/api/agents/run-pipeline', {
@@ -182,8 +234,153 @@ async function triggerAutonomousPipeline() {
 }
 
 // -------------------------------------------------------------
-// 4. NICHE & COMPETITOR RESEARCH
+// 5. VOICEOVER STUDIO (LIVE SYNTHESIZER)
 // -------------------------------------------------------------
+async function synthesizeVoiceStudioAction() {
+  const text = document.getElementById('voice-studio-text').value.trim();
+  const voice = document.getElementById('voice-studio-select').value;
+  const speed = parseInt(document.getElementById('voice-speed-slider').value) || 0;
+  const btn = document.getElementById('btn-synthesize-voice');
+
+  if (!text) {
+    alert("Please enter text to synthesize.");
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin mr-1"></i> Synthesizing Neural Audio...`;
+
+  try {
+    const res = await fetch('/api/voice/synthesize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, voice, speed_pct: speed })
+    });
+
+    if (!res.ok) throw new Error("Synthesis failed on server.");
+    const data = await res.json();
+
+    const container = document.getElementById('voice-player-container');
+    const audioEl = document.getElementById('voice-audio-el');
+    const downloadLink = document.getElementById('voice-download-link');
+
+    container.classList.remove('hidden');
+    audioEl.src = data.audio_url;
+    audioEl.play();
+    downloadLink.href = data.audio_url;
+
+    btn.disabled = false;
+    btn.innerHTML = `🎙️ Synthesize Neural Audio`;
+  } catch (e) {
+    alert("Voice synthesis error: " + e.message);
+    btn.disabled = false;
+    btn.innerHTML = `🎙️ Synthesize Neural Audio`;
+  }
+}
+
+// -------------------------------------------------------------
+// 6. THUMBNAIL CANVAS GENERATOR (HD 1280x720 PNG)
+// -------------------------------------------------------------
+function renderCanvasThumbnail() {
+  const canvas = document.getElementById('thumbnail-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const topic = document.getElementById('thumb-input-topic').value || "THEY HID THIS!";
+
+  document.getElementById('canvas-preview-wrapper').classList.remove('hidden');
+
+  // 1. Draw Background Gradient
+  const grad = ctx.createLinearGradient(0, 0, 1280, 720);
+  grad.addColorStop(0, '#0a0a14');
+  grad.addColorStop(0.5, '#1e1035');
+  grad.addColorStop(1, '#ff0055');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 1280, 720);
+
+  // 2. Draw Vignette & Lighting
+  const rad = ctx.createRadialGradient(640, 360, 100, 640, 360, 700);
+  rad.addColorStop(0, 'rgba(255,255,255,0.08)');
+  rad.addColorStop(1, 'rgba(0,0,0,0.85)');
+  ctx.fillStyle = rad;
+  ctx.fillRect(0, 0, 1280, 720);
+
+  // 3. Draw Badge
+  ctx.fillStyle = '#ff0033';
+  ctx.beginPath();
+  ctx.roundRect(80, 80, 240, 60, 15);
+  ctx.fill();
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 30px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText('SHOCKING FACT', 100, 122);
+
+  // 4. Draw Main Headline Text
+  ctx.fillStyle = '#FFE600';
+  ctx.font = '900 75px "Plus Jakarta Sans", sans-serif';
+  ctx.shadowColor = 'black';
+  ctx.shadowBlur = 20;
+  ctx.shadowOffsetX = 6;
+  ctx.shadowOffsetY = 6;
+  
+  // Word wrap
+  const words = topic.toUpperCase().split(' ');
+  let line = '';
+  let y = 340;
+  for (let n = 0; n < words.length; n++) {
+    let testLine = line + words[n] + ' ';
+    let metrics = ctx.measureText(testLine);
+    if (metrics.width > 1100 && n > 0) {
+      ctx.fillText(line, 80, y);
+      line = words[n] + ' ';
+      y += 90;
+    } else {
+      line = testLine;
+    }
+  }
+  ctx.fillText(line, 80, y);
+
+  // 5. Draw 4K Ultra HD Pill
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
+  ctx.fillStyle = 'rgba(0,0,0,0.7)';
+  ctx.beginPath();
+  ctx.roundRect(1050, 620, 150, 50, 12);
+  ctx.fill();
+
+  ctx.fillStyle = '#00f0ff';
+  ctx.font = 'bold 24px monospace';
+  ctx.fillText('4K ULTRA', 1070, 654);
+
+  // Set Download Link
+  const dataUrl = canvas.toDataURL('image/png');
+  document.getElementById('canvas-download-btn').href = dataUrl;
+}
+
+// -------------------------------------------------------------
+// 7. GOOGLE TRENDS RESEARCH
+// -------------------------------------------------------------
+async function searchGoogleTrendsAction() {
+  const query = document.getElementById('trends-search-input').value.trim() || "ai automation";
+  const container = document.getElementById('trends-results-container');
+  container.innerHTML = `<span class="text-blue-300 text-xs animate-pulse">Scanning Google Trends & Autocomplete...</span>`;
+
+  try {
+    const res = await fetch(`/api/research/trends?query=${encodeURIComponent(query)}`);
+    const data = await res.json();
+
+    container.innerHTML = data.trends.map(t => `
+      <div onclick="setTopicAndCreate('${t.keyword}')" class="cursor-pointer px-3 py-1.5 rounded-xl bg-blue-950/40 hover:bg-blue-900/60 border border-blue-800/60 text-xs text-blue-200 transition flex items-center gap-2">
+        <i class="fa-solid fa-arrow-trend-up text-green-400"></i>
+        <span class="font-bold">${t.keyword}</span>
+        <span class="text-[10px] text-green-300 font-semibold">${t.velocity}</span>
+      </div>
+    `).join('');
+  } catch (e) {
+    container.innerHTML = `<span class="text-red-400 text-xs">Trends error: ${e.message}</span>`;
+  }
+}
+
 async function loadNiches() {
   try {
     const res = await fetch('/api/research/niches');
@@ -209,10 +406,6 @@ async function loadNiches() {
             <span>Search Volume:</span>
             <span class="text-blue-300 font-bold">${n.search_volume}</span>
           </div>
-          <div class="flex justify-between text-gray-400">
-            <span>Competition:</span>
-            <span class="text-yellow-300 font-bold">${n.competition}</span>
-          </div>
         </div>
 
         <div class="pt-2">
@@ -233,7 +426,7 @@ async function loadNiches() {
 }
 
 // -------------------------------------------------------------
-// 5. AI VIDEO IDEAS & VIRAL SCANNER
+// 8. AI VIDEO IDEAS & VIRAL SCANNER
 // -------------------------------------------------------------
 async function fetchViralIdeas() {
   try {
@@ -277,14 +470,14 @@ function openInScriptStudio(title) {
 }
 
 // -------------------------------------------------------------
-// 6. SCRIPT STUDIO
+// 9. SCRIPT STUDIO
 // -------------------------------------------------------------
 async function generateFullScriptAction() {
   const topic = document.getElementById('script-input-topic').value;
   const format = document.getElementById('script-input-format').value;
   const tone = document.getElementById('script-input-tone').value;
 
-  document.getElementById('script-editor-body').value = "Generating retention-optimized script with chapter markers and visual cues...";
+  document.getElementById('script-editor-body').value = "Generating retention-optimized script with Google Gemini...";
 
   try {
     const res = await fetch('/api/scripts/generate-full', {
@@ -307,6 +500,12 @@ async function generateFullScriptAction() {
   }
 }
 
+function copyScriptText() {
+  const body = document.getElementById('script-editor-body').value;
+  navigator.clipboard.writeText(body);
+  alert("📋 Script copied to clipboard!");
+}
+
 function sendScriptToCreator() {
   const topic = document.getElementById('script-input-topic').value;
   setTopic(topic);
@@ -314,7 +513,7 @@ function sendScriptToCreator() {
 }
 
 // -------------------------------------------------------------
-// 7. YOUTUBE SEO OPTIMIZER
+// 10. YOUTUBE SEO OPTIMIZER
 // -------------------------------------------------------------
 async function analyzeSEOAction() {
   const title = document.getElementById('seo-input-title').value;
@@ -339,7 +538,10 @@ async function analyzeSEOAction() {
       </div>
 
       <div class="p-3 rounded-xl bg-black/40 border border-gray-800 space-y-2">
-        <div class="font-bold text-white text-xs">Ranked Tags & Keywords (${data.recommended_tags.length}):</div>
+        <div class="flex justify-between items-center">
+          <div class="font-bold text-white text-xs">Ranked Tags & Keywords (${data.recommended_tags.length}):</div>
+          <button onclick="copyTags('${data.recommended_tags.join(', ')}')" class="text-[10px] font-bold text-indigo-400 hover:text-white">Copy All Tags</button>
+        </div>
         <div class="flex flex-wrap gap-1.5">
           ${data.recommended_tags.map(tag => `<span class="px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800 text-[11px]">${tag}</span>`).join('')}
         </div>
@@ -355,8 +557,13 @@ async function analyzeSEOAction() {
   }
 }
 
+function copyTags(tagsStr) {
+  navigator.clipboard.writeText(tagsStr);
+  alert("📋 Tags copied to clipboard!");
+}
+
 // -------------------------------------------------------------
-// 8. THUMBNAIL STUDIO & A/B TESTER
+// 11. THUMBNAIL STUDIO & A/B TESTER
 // -------------------------------------------------------------
 async function generateThumbnailsAction() {
   const topic = document.getElementById('thumb-input-topic').value;
@@ -379,7 +586,6 @@ async function generateThumbnailsAction() {
             <span class="text-xs font-bold text-green-400">${v.predicted_ctr} Predicted CTR</span>
           </div>
 
-          <!-- 16:9 Thumbnail Mockup -->
           <div class="w-full aspect-video bg-black rounded-xl border border-gray-800 p-4 flex flex-col justify-between relative overflow-hidden shadow-lg">
             <div class="absolute inset-0 bg-gradient-to-tr from-black via-gray-900 to-purple-950/60 opacity-90"></div>
             <div class="relative z-10 text-[10px] text-orange-400 font-bold uppercase tracking-wider">${v.subtext}</div>
@@ -407,7 +613,7 @@ async function generateThumbnailsAction() {
 }
 
 // -------------------------------------------------------------
-// 9. 1-CLICK CONTENT REPURPOSER
+// 12. 1-CLICK CONTENT REPURPOSER
 // -------------------------------------------------------------
 async function runRepurposerAction() {
   const title = document.getElementById('repurpose-input-title').value;
@@ -423,7 +629,6 @@ async function runRepurposerAction() {
 
     const data = await res.json();
     grid.innerHTML = `
-      <!-- 1. Shorts / Reels Clips -->
       <div class="glass-panel p-5 rounded-2xl space-y-3">
         <h4 class="font-bold text-sm text-white flex items-center gap-2">
           <i class="fa-brands fa-youtube text-red-500"></i> 3 Extracted Viral Shorts
@@ -442,7 +647,6 @@ async function runRepurposerAction() {
         </div>
       </div>
 
-      <!-- 2. X (Twitter) Thread -->
       <div class="glass-panel p-5 rounded-2xl space-y-3">
         <h4 class="font-bold text-sm text-white flex items-center gap-2">
           <i class="fa-brands fa-x-twitter text-white"></i> Viral 7-Part X Thread
@@ -452,7 +656,6 @@ async function runRepurposerAction() {
         </div>
       </div>
 
-      <!-- 3. LinkedIn Post -->
       <div class="glass-panel p-5 rounded-2xl space-y-3">
         <h4 class="font-bold text-sm text-white flex items-center gap-2">
           <i class="fa-brands fa-linkedin text-blue-400"></i> High-Authority LinkedIn Post
@@ -462,7 +665,6 @@ async function runRepurposerAction() {
         </div>
       </div>
 
-      <!-- 4. SEO Blog Article -->
       <div class="glass-panel p-5 rounded-2xl space-y-3">
         <h4 class="font-bold text-sm text-white flex items-center gap-2">
           <i class="fa-solid fa-newspaper text-emerald-400"></i> Medium / Blog Article (${data.blog_article.read_time})
@@ -479,7 +681,7 @@ async function runRepurposerAction() {
 }
 
 // -------------------------------------------------------------
-// 10. CONTENT CALENDAR
+// 13. CONTENT CALENDAR & SCHEDULER
 // -------------------------------------------------------------
 async function loadCalendarEvents() {
   try {
@@ -499,8 +701,9 @@ async function loadCalendarEvents() {
             </div>
             <div class="font-bold text-xs text-white line-clamp-2">${ev.title}</div>
             <div class="text-[10px] text-gray-400">Target: <span class="text-purple-300">${ev.channel}</span></div>
-            <div class="pt-2 text-[10px] font-bold text-green-400 flex items-center gap-1">
-              <i class="fa-solid fa-circle text-[6px]"></i> ${ev.status}
+            <div class="pt-2 text-[10px] font-bold text-green-400 flex items-center justify-between">
+              <span><i class="fa-solid fa-circle text-[6px] mr-1"></i> ${ev.status}</span>
+              <button onclick="deleteCalendarEvent('${ev.id}')" class="text-red-400 hover:text-red-300 text-[10px]">Delete</button>
             </div>
           </div>
         `).join('')}
@@ -511,8 +714,31 @@ async function loadCalendarEvents() {
   }
 }
 
+async function openAddEventModal() {
+  const title = prompt("Enter video title to schedule:");
+  if (!title) return;
+  const date = prompt("Enter publish date (YYYY-MM-DD):", new Date().toISOString().slice(0, 10));
+  if (!date) return;
+
+  await fetch('/api/calendar/add', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title, date, time: "15:00", format: "Shorts", channel: activeChannel })
+  });
+  loadCalendarEvents();
+}
+
+async function deleteCalendarEvent(id) {
+  await fetch('/api/calendar/delete', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event_id: id })
+  });
+  loadCalendarEvents();
+}
+
 // -------------------------------------------------------------
-// 11. MONETIZATION & SPONSORSHIPS
+// 14. MONETIZATION & SPONSORSHIPS
 // -------------------------------------------------------------
 async function loadMonetizationStats() {
   try {
@@ -561,8 +787,19 @@ async function loadMonetizationStats() {
   }
 }
 
+function recalculateSponsorRate(views) {
+  const v = parseInt(views) || 50000;
+  const intMin = Math.round(v * 0.03);
+  const intMax = Math.round(v * 0.045);
+  const dedMin = Math.round(v * 0.07);
+  const dedMax = Math.round(v * 0.1);
+
+  document.getElementById('calc-integration-rate').innerText = `$${intMin.toLocaleString()} - $${intMax.toLocaleString()}`;
+  document.getElementById('calc-dedicated-rate').innerText = `$${dedMin.toLocaleString()} - $${dedMax.toLocaleString()}`;
+}
+
 // -------------------------------------------------------------
-// 12. 1-CLICK VIDEO GENERATION CONTROLLER
+// 15. 1-CLICK VIDEO GENERATION CONTROLLER
 // -------------------------------------------------------------
 function setTopic(text) {
   const input = document.getElementById('input-topic');
@@ -696,7 +933,7 @@ function closeModal() {
 }
 
 // -------------------------------------------------------------
-// 13. VIDEO GALLERY LOADER
+// 16. VIDEO GALLERY LOADER
 // -------------------------------------------------------------
 async function fetchVideoList() {
   try {
@@ -747,23 +984,30 @@ async function fetchVideoList() {
 }
 
 // -------------------------------------------------------------
-// 14. SETTINGS
+// 17. SETTINGS
 // -------------------------------------------------------------
 function saveSettings() {
   const pexelsKey = document.getElementById('setting-pexels').value.trim();
   const veoKey = document.getElementById('setting-veo').value.trim();
+  const clientId = document.getElementById('setting-client-id').value.trim();
+
   localStorage.setItem('pexels_api_key', pexelsKey);
   localStorage.setItem('veo_api_key', veoKey);
-  alert("Settings saved successfully!");
+  localStorage.setItem('google_client_id', clientId);
+
+  alert("Settings & Google Plugin keys saved successfully!");
 }
 
-// Initialize on DOM load
 document.addEventListener('DOMContentLoaded', () => {
   const savedPexels = localStorage.getItem('pexels_api_key');
   const savedVeo = localStorage.getItem('veo_api_key');
+  const savedClientId = localStorage.getItem('google_client_id');
+
   if (savedPexels && document.getElementById('setting-pexels')) document.getElementById('setting-pexels').value = savedPexels;
   if (savedVeo && document.getElementById('setting-veo')) document.getElementById('setting-veo').value = savedVeo;
+  if (savedClientId && document.getElementById('setting-client-id')) document.getElementById('setting-client-id').value = savedClientId;
 
   loadDashboardStats();
+  checkConnectedChannel();
   fetchVideoList();
 });

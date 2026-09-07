@@ -1,32 +1,39 @@
 """
 FastAPI Backend Server for YouTube Automation & AI Channel Studio SaaS
-Powers all 20 modules: Dashboard, Niche Research, AI Ideas, Script Studio, Voiceover,
-Google Veo Video Engine, Thumbnails, SEO, Calendar, Multi-Agent Pipeline, Repurposer, Analytics, and Monetization CRM.
+Powers Google Plugins: YouTube Data API v3 OAuth, Google Veo, Google Trends, Edge-TTS, and all 20 modules.
 """
 import os
 import glob
 import uuid
 import random
-from fastapi import FastAPI, HTTPException, Body
+import tempfile
+from fastapi import FastAPI, HTTPException, Body, Query
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from pydantic import BaseModel
 from typing import Optional, List
 
-from backend.generator import start_generation_job, process_video_job, JOBS, OUTPUT_DIR
+from backend.generator import start_generation_job, process_video_job, JOBS, OUTPUT_DIR, TEMP_DIR
 from backend.services.script_ai import generate_script
-from backend.services.research_engine import get_all_niches, analyze_niche_opportunity
+from backend.services.voice_tts import synthesize_preview_audio
+from backend.services.research_engine import get_all_niches, analyze_niche_opportunity, get_google_trends_keywords
 from backend.services.agents import run_autonomous_agent_pipeline, AGENTS_CONFIG
 from backend.services.repurposer import repurpose_content
 from backend.services.thumbnail_ai import generate_thumbnail_concepts
 from backend.services.seo_optimizer import analyze_and_optimize_seo
 from backend.services.youtube_upload import upload_video_to_youtube
+from backend.services.youtube_oauth import (
+    get_oauth_auth_url,
+    handle_oauth_callback,
+    get_current_channel_info,
+    disconnect_channel
+)
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
 
-app = FastAPI(title="AutoShorts AI — YouTube Automation Studio", version="2.0.0")
+app = FastAPI(title="AutoShorts AI — YouTube Automation Studio", version="2.5.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -39,8 +46,16 @@ app.add_middleware(
 if os.path.exists(FRONTEND_DIR):
     app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 
+# In-memory calendar database
+CALENDAR_EVENTS = [
+    {"id": "ev_1", "date": "2026-09-08", "time": "15:00", "title": "3 Dark Psychology Secrets Everyday", "format": "Shorts", "channel": "Apex Tech", "status": "Ready to Publish"},
+    {"id": "ev_2", "date": "2026-09-10", "time": "16:30", "title": "Google Veo 2 vs OpenAI Sora Full Deep Dive", "format": "Long-form", "channel": "Apex Tech", "status": "Script Drafted"},
+    {"id": "ev_3", "date": "2026-09-12", "time": "14:00", "title": "The 5-Second Silence Trick in Business", "format": "Shorts", "channel": "Dark Psychology", "status": "Rendering (Veo)"},
+    {"id": "ev_4", "date": "2026-09-15", "time": "15:00", "title": "The Scariest Sound Recorded in Deep Space", "format": "Shorts", "channel": "Apex Tech", "status": "Scheduled"}
+]
 
-# Pydantic Schemas
+
+# Pydantic Request Models
 class GenerateRequest(BaseModel):
     topic: str
     tone: str = "energetic"
@@ -53,9 +68,15 @@ class GenerateRequest(BaseModel):
 
 class ScriptFullRequest(BaseModel):
     topic: str
-    format_type: str = "shorts"  # "shorts" or "longform"
+    format_type: str = "shorts"
     tone: str = "energetic"
     style: str = "documentary"
+
+
+class VoicePreviewRequest(BaseModel):
+    text: str
+    voice: str = "christopher"
+    speed_pct: int = 0
 
 
 class RepurposeRequest(BaseModel):
@@ -82,6 +103,14 @@ class AgentPipelineRequest(BaseModel):
     channel: Optional[str] = "Apex Tech"
 
 
+class CalendarAddRequest(BaseModel):
+    title: str
+    date: str
+    time: str
+    format: str = "Shorts"
+    channel: str = "Apex Tech"
+
+
 class UploadRequest(BaseModel):
     filename: str
     title: str
@@ -89,77 +118,97 @@ class UploadRequest(BaseModel):
 
 
 # -------------------------------------------------------------
-# 1. CORE & DASHBOARD ENDPOINTS
+# 1. CORE & YOUTUBE OAUTH ENDPOINTS (GOOGLE PLUGIN)
 # -------------------------------------------------------------
 @app.get("/")
 def serve_index():
     index_path = os.path.join(FRONTEND_DIR, "index.html")
     if os.path.exists(index_path):
         return FileResponse(index_path)
-    return {"message": "AutoShorts AI Suite 2.0 API Running."}
+    return {"message": "AutoShorts AI Suite 2.5 API Running."}
 
 
-@app.get("/api/dashboard/stats")
-def get_dashboard_stats(channel: str = "Apex Tech"):
+@app.get("/api/youtube/auth-url")
+def get_youtube_auth_url(client_id: str = "", redirect_uri: str = "http://localhost:8000/api/youtube/callback"):
     """
-    Returns executive metrics, AI Channel Brain advice, recent uploads, and channel status.
+    Returns Google OAuth2 authorization URL for connecting a YouTube channel.
     """
-    channels_data = {
-        "Apex Tech": {
-            "subscribers": "142,850",
-            "subs_change": "+8,420 (this mo)",
-            "views_28d": "1,840,290",
-            "views_change": "+24.8%",
-            "watch_time_hrs": "48,200",
-            "est_revenue": "$6,420.50",
-            "revenue_change": "+18.2%",
-            "avg_ctr": "11.4%",
-            "avg_view_duration": "82%",
-            "niche": "🤖 AI & Future Tech",
-            "ai_brain_recommendations": [
-                {
-                    "type": "opportunity",
-                    "title": "Viral Spike Detected: Google Veo 2 Topics",
-                    "detail": "Your last Veo Short outperformed channel average by +142%. Create 3 more follow-ups this week.",
-                    "urgency": "High Impact",
-                    "action_topic": "Google Veo 2 vs OpenAI Sora 2026 Comparison"
-                },
-                {
-                    "type": "retention",
-                    "title": "Hook Retention Optimization",
-                    "detail": "Adding a 1-second countdown visual in 0-3s increased your Average Percentage Viewed by +12%.",
-                    "urgency": "Pro Tip",
-                    "action_topic": "Use Dynamic Highlighted Subtitles"
-                }
-            ]
-        },
-        "Dark Psychology": {
-            "subscribers": "328,100",
-            "subs_change": "+19,400 (this mo)",
-            "views_28d": "4,120,800",
-            "views_change": "+38.4%",
-            "watch_time_hrs": "98,400",
-            "est_revenue": "$12,850.00",
-            "revenue_change": "+28.1%",
-            "avg_ctr": "13.2%",
-            "avg_view_duration": "88%",
-            "niche": "🧠 Human Behavior & Psychology",
-            "ai_brain_recommendations": [
-                {
-                    "type": "opportunity",
-                    "title": "High-RPM Gap: Negotiation Micro-Expressions",
-                    "detail": "Competitor query 'how to read silence in deals' has high search volume and low competition.",
-                    "urgency": "High Impact",
-                    "action_topic": "The 5-Second Silence Rule in Negotiations"
-                }
-            ]
-        }
-    }
-    return channels_data.get(channel, channels_data["Apex Tech"])
+    url = get_oauth_auth_url(client_id=client_id, redirect_uri=redirect_uri)
+    return {"auth_url": url}
+
+
+@app.get("/api/youtube/callback")
+def handle_youtube_oauth_callback(code: str = "", error: str = ""):
+    """
+    Handles redirect from Google OAuth consent screen.
+    """
+    if error:
+        return RedirectResponse(url="/?oauth_error=" + error)
+    handle_oauth_callback(code=code)
+    return RedirectResponse(url="/?oauth_success=true")
+
+
+@app.get("/api/youtube/channel-info")
+def get_connected_channel():
+    """
+    Returns live connected YouTube channel statistics.
+    """
+    return get_current_channel_info()
+
+
+@app.post("/api/youtube/disconnect")
+def disconnect_youtube_channel():
+    return disconnect_channel()
 
 
 # -------------------------------------------------------------
-# 2. NICHE & COMPETITOR RESEARCH
+# 2. DASHBOARD & AI BRAIN
+# -------------------------------------------------------------
+@app.get("/api/dashboard/stats")
+def get_dashboard_stats(channel: str = "Apex Tech"):
+    ch_info = get_current_channel_info()
+    if ch_info.get("connected"):
+        subs = ch_info["subscribers"]
+        views = ch_info["total_views"]
+        title = ch_info["title"]
+    else:
+        subs = "142,850" if channel == "Apex Tech" else "328,100"
+        views = "1,840,290" if channel == "Apex Tech" else "4,120,800"
+        title = channel
+
+    return {
+        "channel_title": title,
+        "subscribers": subs,
+        "subs_change": "+8,420 (this mo)",
+        "views_28d": views,
+        "views_change": "+24.8%",
+        "watch_time_hrs": "48,200",
+        "est_revenue": "$6,420.50",
+        "revenue_change": "+18.2%",
+        "avg_ctr": "11.4%",
+        "avg_view_duration": "82%",
+        "niche": "🤖 AI & Future Tech",
+        "ai_brain_recommendations": [
+            {
+                "type": "opportunity",
+                "title": "Viral Spike Detected: Google Veo 2 Topics",
+                "detail": "Your last Veo Short outperformed channel average by +142%. Create 3 more follow-ups this week.",
+                "urgency": "High Impact",
+                "action_topic": "Google Veo 2 vs OpenAI Sora 2026 Comparison"
+            },
+            {
+                "type": "retention",
+                "title": "Hook Retention Optimization",
+                "detail": "Adding a 1-second countdown visual in 0-3s increased your Average Percentage Viewed by +12%.",
+                "urgency": "Pro Tip",
+                "action_topic": "The 5-Second Silence Rule in Negotiations"
+            }
+        ]
+    }
+
+
+# -------------------------------------------------------------
+# 3. RESEARCH & GOOGLE TRENDS PLUGIN
 # -------------------------------------------------------------
 @app.get("/api/research/niches")
 def get_niches():
@@ -171,23 +220,13 @@ def get_niche_opportunity(niche_id: str = "dark_psychology"):
     return analyze_niche_opportunity(niche_id)
 
 
-# -------------------------------------------------------------
-# 3. AI VIDEO IDEAS & VIRAL SCANNER
-# -------------------------------------------------------------
-@app.get("/api/ideas/generate")
-def generate_ideas(niche: str = "AI Tech", count: int = 6):
-    ideas = [
-        {"title": f"The Secret {niche} Protocol That 99% Of People Miss", "viral_score": 96, "angle": "Controversial / Pattern Interrupt", "est_views": "150K - 400K", "rpm_potential": "High ($18+)"},
-        {"title": f"Why Everything You Were Told About {niche} Is A Lie", "viral_score": 94, "angle": "Debunking / Mythbuster", "est_views": "120K - 350K", "rpm_potential": "Medium-High"},
-        {"title": f"How To Master {niche} In 6 Months (Step-by-Step Blueprint)", "viral_score": 91, "angle": "Actionable Roadmap", "est_views": "80K - 220K", "rpm_potential": "Very High ($24+)"},
-        {"title": f"3 Shocking Facts About {niche} That Will Keep You Up At Night", "viral_score": 98, "angle": "Curiosity Gap / Mystery", "est_views": "250K - 600K", "rpm_potential": "High ($15+)"},
-        {"title": f"The Real Reason The Top 1% Are Investing In {niche}", "viral_score": 89, "angle": "Authority / Insider Secrets", "est_views": "90K - 280K", "rpm_potential": "Maximum ($32+)"}
-    ]
-    return {"niche": niche, "ideas": ideas}
+@app.get("/api/research/trends")
+def get_trends(query: str = "ai automation"):
+    return get_google_trends_keywords(query)
 
 
 # -------------------------------------------------------------
-# 4. AI SCRIPT STUDIO (SHORTS & LONG-FORM)
+# 4. AI SCRIPT & VOICE STUDIO
 # -------------------------------------------------------------
 @app.post("/api/scripts/generate-full")
 def create_full_script(req: ScriptFullRequest):
@@ -203,15 +242,9 @@ def create_full_script(req: ScriptFullRequest):
                 {"timestamp": "4:30", "title": "Chapter 2: The Critical Turning Point", "content": "When researchers first measured the feedback loop, the results shocked the entire scientific community..."},
                 {"timestamp": "7:15", "title": "Chapter 3: The Future Implication", "content": "Over the next decade, those who adapt to this protocol will hold an asymmetric advantage..."},
                 {"timestamp": "8:50", "title": "Conclusion & Action Protocol", "content": "Before you leave, remember this golden rule. Hit subscribe and leave your thoughts below."}
-            ],
-            "visual_prompts": [
-                "Cinematic 4K establishing shot with dramatic volumetric lighting, 16:9",
-                "Macro slow-motion shot of digital data stream particles, 16:9",
-                "Dramatic portrait with dark vignette and neon rim light, 16:9"
             ]
         }
     else:
-        # Shorts format
         script_data = generate_script(topic=req.topic, tone=req.tone)
         return {
             "title": script_data["title"],
@@ -226,33 +259,53 @@ def create_full_script(req: ScriptFullRequest):
         }
 
 
+@app.post("/api/voice/synthesize")
+def synthesize_voice(req: VoicePreviewRequest):
+    """
+    On-demand voiceover synthesizer for Voiceover Studio.
+    """
+    if not req.text.strip():
+        raise HTTPException(status_code=400, detail="Text cannot be empty.")
+    filepath, filename = synthesize_preview_audio(
+        text=req.text,
+        voice_key=req.voice,
+        speed_pct=req.speed_pct,
+        output_dir=TEMP_DIR
+    )
+    return {
+        "status": "success",
+        "audio_url": f"/api/audio/{filename}",
+        "voice": req.voice,
+        "filename": filename
+    }
+
+
+@app.get("/api/audio/{filename}")
+def stream_preview_audio(filename: str):
+    path = os.path.join(TEMP_DIR, filename)
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="Audio file not found.")
+    return FileResponse(path, media_type="audio/mpeg", filename=filename)
+
+
 # -------------------------------------------------------------
-# 5. AI THUMBNAIL STUDIO & A/B TESTER
+# 5. THUMBNAILS, SEO & REPURPOSING
 # -------------------------------------------------------------
 @app.post("/api/thumbnails/generate")
 def create_thumbnails(req: ThumbnailRequest):
     return generate_thumbnail_concepts(topic=req.topic, tone=req.tone or "viral")
 
 
-# -------------------------------------------------------------
-# 6. YOUTUBE SEO OPTIMIZER
-# -------------------------------------------------------------
 @app.post("/api/seo/analyze")
 def optimize_seo(req: SEORequest):
     return analyze_and_optimize_seo(title=req.title, topic=req.topic or req.title, niche=req.niche or "general")
 
 
-# -------------------------------------------------------------
-# 7. CONTENT REPURPOSER
-# -------------------------------------------------------------
 @app.post("/api/repurpose")
 def run_repurpose(req: RepurposeRequest):
     return repurpose_content(source_title=req.title, source_text=req.text or "", video_url=req.video_url or "")
 
 
-# -------------------------------------------------------------
-# 8. AUTONOMOUS MULTI-AGENT PIPELINE
-# -------------------------------------------------------------
 @app.post("/api/agents/run-pipeline")
 def execute_agent_pipeline(req: AgentPipelineRequest):
     return run_autonomous_agent_pipeline(
@@ -264,8 +317,35 @@ def execute_agent_pipeline(req: AgentPipelineRequest):
 
 
 # -------------------------------------------------------------
-# 9. MONETIZATION & SPONSORSHIP CRM
+# 6. CALENDAR & MONETIZATION
 # -------------------------------------------------------------
+@app.get("/api/calendar/events")
+def get_calendar_events():
+    return {"events": CALENDAR_EVENTS}
+
+
+@app.post("/api/calendar/add")
+def add_calendar_event(req: CalendarAddRequest):
+    new_ev = {
+        "id": f"ev_{uuid.uuid4().hex[:6]}",
+        "title": req.title,
+        "date": req.date,
+        "time": req.time,
+        "format": req.format,
+        "channel": req.channel,
+        "status": "Scheduled"
+    }
+    CALENDAR_EVENTS.insert(0, new_ev)
+    return {"status": "added", "event": new_ev}
+
+
+@app.post("/api/calendar/delete")
+def delete_calendar_event(event_id: str = Body(..., embed=True)):
+    global CALENDAR_EVENTS
+    CALENDAR_EVENTS = [ev for ev in CALENDAR_EVENTS if ev.get("id") != event_id]
+    return {"status": "deleted"}
+
+
 @app.get("/api/monetization/stats")
 def get_monetization_stats():
     return {
@@ -291,22 +371,7 @@ def get_monetization_stats():
 
 
 # -------------------------------------------------------------
-# 10. CONTENT CALENDAR EVENTS
-# -------------------------------------------------------------
-@app.get("/api/calendar/events")
-def get_calendar_events():
-    return {
-        "events": [
-            {"date": "2026-09-08", "time": "15:00", "title": "3 Dark Psychology Secrets Everyday", "format": "Shorts", "channel": "Apex Tech", "status": "Ready to Publish"},
-            {"date": "2026-09-10", "time": "16:30", "title": "Google Veo 2 vs OpenAI Sora Full Deep Dive", "format": "Long-form", "channel": "Apex Tech", "status": "Script Drafted"},
-            {"date": "2026-09-12", "time": "14:00", "title": "The 5-Second Silence Trick in Business", "format": "Shorts", "channel": "Dark Psychology", "status": "Rendering (Veo)"},
-            {"date": "2026-09-15", "time": "15:00", "title": "The Scariest Sound Recorded in Deep Space", "format": "Shorts", "channel": "Apex Tech", "status": "Scheduled"}
-        ]
-    }
-
-
-# -------------------------------------------------------------
-# 11. VIDEO RENDERING ENDPOINTS
+# 7. VIDEO RENDERING & STREAMING
 # -------------------------------------------------------------
 @app.post("/api/generate")
 def create_video_async(req: GenerateRequest):

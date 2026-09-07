@@ -1,7 +1,4 @@
-// AutoShorts AI — Frontend Logic with Google Veo
-
-let currentJobId = null;
-let pollInterval = null;
+// AutoShorts AI — Frontend Logic with Google Veo & Direct Cloud Sync
 
 function switchTab(tabId) {
   document.getElementById('tab-wizard').classList.add('hidden');
@@ -81,12 +78,29 @@ async function startVideoGeneration() {
   document.getElementById('generation-modal').classList.remove('hidden');
   document.getElementById('modal-title').innerText = engine === 'veo' ? "Generating with Google Veo AI..." : "Generating Viral Short...";
   document.getElementById('modal-status-text').innerText = "🧠 Crafting viral hook & script...";
-  document.getElementById('modal-progress-bar').style.width = "15%";
-  document.getElementById('modal-progress-percent').innerText = "15%";
+  document.getElementById('modal-progress-bar').style.width = "20%";
+  document.getElementById('modal-progress-percent').innerText = "20%";
   document.getElementById('modal-success-box').classList.add('hidden');
 
+  // Simulated progress stages for smooth UI during cloud rendering
+  let progress = 20;
+  const progressTimer = setInterval(() => {
+    if (progress < 85) {
+      progress += Math.floor(Math.random() * 12) + 5;
+      if (progress > 85) progress = 85;
+      document.getElementById('modal-progress-bar').style.width = `${progress}%`;
+      document.getElementById('modal-progress-percent').innerText = `${progress}%`;
+      
+      if (progress > 60) {
+        document.getElementById('modal-status-text').innerText = "⚡ Burning dynamic animated subtitles & mixing audio...";
+      } else if (progress > 35) {
+        document.getElementById('modal-status-text').innerText = engine === 'veo' ? "🎬 Generating cinematic Google Veo scenes..." : "🎬 Sourcing HD vertical video footage...";
+      }
+    }
+  }, 2000);
+
   try {
-    const res = await fetch('/api/generate', {
+    const res = await fetch('/api/generate-sync', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -100,56 +114,34 @@ async function startVideoGeneration() {
       })
     });
 
+    clearInterval(progressTimer);
+
     if (!res.ok) {
-      throw new Error("Failed to start generation.");
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.detail || "Generation failed on server.");
     }
 
-    const data = await res.json();
-    currentJobId = data.job_id;
-    startPolling(currentJobId);
+    const job = await res.json();
+    
+    document.getElementById('modal-progress-bar').style.width = "100%";
+    document.getElementById('modal-progress-percent').innerText = "100%";
+    document.getElementById('modal-title').innerText = "🎉 Your Short Is Ready!";
+    document.getElementById('modal-status-text').innerText = "Rendered in 1080x1920 Full HD with animated captions.";
+    document.getElementById('modal-success-box').classList.remove('hidden');
+
+    const videoUrl = job.result.video_url;
+    const videoEl = document.getElementById('modal-video-preview');
+    videoEl.src = videoUrl;
+    videoEl.load();
+
+    document.getElementById('modal-download-btn').href = videoUrl;
+    fetchVideoList();
 
   } catch (err) {
-    alert("Error: " + err.message);
+    clearInterval(progressTimer);
+    alert("Generation Error: " + err.message);
     closeModal();
   }
-}
-
-function startPolling(jobId) {
-  if (pollInterval) clearInterval(pollInterval);
-
-  pollInterval = setInterval(async () => {
-    try {
-      const res = await fetch(`/api/job/${jobId}`);
-      if (!res.ok) return;
-
-      const job = await res.json();
-      document.getElementById('modal-status-text').innerText = job.step || "Processing...";
-      document.getElementById('modal-progress-bar').style.width = `${job.progress || 10}%`;
-      document.getElementById('modal-progress-percent').innerText = `${job.progress || 10}%`;
-
-      if (job.status === 'completed') {
-        clearInterval(pollInterval);
-        document.getElementById('modal-title').innerText = "🎉 Your Short Is Ready!";
-        document.getElementById('modal-status-text').innerText = "Rendered in 1080x1920 Full HD with animated captions.";
-        document.getElementById('modal-success-box').classList.remove('hidden');
-
-        const videoUrl = job.result.video_url;
-        const videoEl = document.getElementById('modal-video-preview');
-        videoEl.src = videoUrl;
-        videoEl.load();
-
-        document.getElementById('modal-download-btn').href = videoUrl;
-        fetchVideoList();
-      } else if (job.status === 'failed') {
-        clearInterval(pollInterval);
-        alert("Generation status: " + job.error);
-        closeModal();
-      }
-
-    } catch (e) {
-      console.error("Polling error:", e);
-    }
-  }, 1500);
 }
 
 function closeModal() {

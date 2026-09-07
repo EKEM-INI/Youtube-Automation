@@ -1,9 +1,10 @@
 """
 FastAPI Backend Server for YouTube Automation Dashboard
-Supports Google Veo AI, Edge-TTS, and dynamic cloud/serverless file streaming.
+Supports both synchronous cloud generation and asynchronous local rendering.
 """
 import os
 import glob
+import uuid
 from fastapi import FastAPI, HTTPException, Body
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,7 +17,7 @@ from backend.services.youtube_upload import upload_video_to_youtube
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
 
-app = FastAPI(title="1-Click YouTube Shorts Automation", version="1.1.0")
+app = FastAPI(title="1-Click YouTube Shorts Automation", version="1.2.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -55,7 +56,7 @@ def serve_index():
 
 
 @app.post("/api/generate")
-def create_video(req: GenerateRequest):
+def create_video_async(req: GenerateRequest):
     if not req.topic.strip():
         raise HTTPException(status_code=400, detail="Topic cannot be empty.")
         
@@ -71,10 +72,38 @@ def create_video(req: GenerateRequest):
     return {"job_id": job_id, "status": "started"}
 
 
+@app.post("/api/generate-sync")
+def create_video_sync(req: GenerateRequest):
+    """
+    Synchronous generation for Serverless platforms (Vercel, Lambda) where background threads are frozen.
+    """
+    if not req.topic.strip():
+        raise HTTPException(status_code=400, detail="Topic cannot be empty.")
+        
+    job_id = str(uuid.uuid4())
+    process_video_job(
+        job_id=job_id,
+        topic=req.topic,
+        tone=req.tone,
+        voice=req.voice,
+        publish_mode=req.publish_mode,
+        pexels_key=req.pexels_key,
+        veo_key=req.veo_key,
+        use_veo=req.use_veo
+    )
+    
+    job_info = JOBS.get(job_id)
+    if not job_info or job_info.get("status") == "failed":
+        err_msg = job_info.get("error", "Unknown error during rendering") if job_info else "Failed to start"
+        raise HTTPException(status_code=500, detail=err_msg)
+        
+    return job_info
+
+
 @app.get("/api/job/{job_id}")
 def get_job_status(job_id: str):
     if job_id not in JOBS:
-        raise HTTPException(status_code=404, detail="Job not found.")
+        raise HTTPException(status_code=404, detail="Job not found or expired on serverless instance.")
     return JOBS[job_id]
 
 

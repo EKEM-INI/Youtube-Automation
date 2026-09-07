@@ -1,0 +1,11 @@
+fastapi==0.141.1
+uvicorn==0.52.4
+edge-tts==7.2.8
+requests==2.34.2
+python-multipart==0.0.32
+imageio-ffmpeg==0.6.0
+pillow==12.3.0
+python-dotenv==1.2.3
+google-api-python-client>=2.170.0
+google-auth-oauthlib>=1.2.2
+google-auth-httplib2>=0.3.0

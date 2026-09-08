@@ -912,10 +912,28 @@
           Authenticate with Google to enable 1-click video publishing, live subscriber syncing, and real-time retention tracking.
         </p>
       </div>
-      <div class="space-y-3">
-        <button onclick="connectYouTubeChannelAction()" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-red-600 to-pink-600 text-white font-bold text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-red-600/30">
-          <i class="fa-brands fa-google"></i> Sign in with Google Account
+
+      <div class="space-y-3 text-left">
+        <div>
+          <label class="text-[11px] font-bold text-gray-300 uppercase tracking-wider">Channel Handle / Name</label>
+          <div class="mt-1 flex gap-2">
+            <input id="input-channel-handle" type="text" placeholder="@yourchannel or Apex Tech" value="@ApexTech" class="flex-1 px-3 py-2 rounded-xl bg-black/60 border border-gray-700 text-xs text-white focus:outline-none focus:border-red-500">
+            <button onclick="connectByHandleAction()" class="px-3 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs transition">
+              Connect
+            </button>
+          </div>
+        </div>
+
+        <div class="relative flex py-2 items-center">
+          <div class="flex-grow border-t border-gray-800"></div>
+          <span class="flex-shrink mx-2 text-[10px] text-gray-500 uppercase font-bold">Or</span>
+          <div class="flex-grow border-t border-gray-800"></div>
+        </div>
+
+        <button onclick="connectYouTubeChannelAction()" class="w-full py-3 rounded-xl bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500 text-white font-bold text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-red-600/30">
+          <i class="fa-brands fa-google"></i> Sign in with Google OAuth2
         </button>
+
         <button onclick="closeYouTubeAuthModal()" class="w-full py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold text-xs transition">
           Cancel
         </button>
@@ -952,7 +970,7 @@
         <video id="modal-video-preview" controls class="w-full rounded-xl aspect-[9/16] bg-black max-h-64 mx-auto object-cover border border-purple-500/40 shadow-lg"></video>
         
         <div class="flex gap-2">
-          <a id="modal-download-btn" href="#" download class="flex-1 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition flex items-center justify-center gap-2">
+          <a id="modal-download-btn" href="#" download="Short_Video.mp4" class="flex-1 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition flex items-center justify-center gap-2">
             <i class="fa-solid fa-download"></i> Download .MP4
           </a>
           <button onclick="closeModal(); switchView('gallery');" class="px-4 py-3 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-bold text-xs transition">
@@ -964,5 +982,6 @@
   </div>
 
   <script src="/static/app.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
